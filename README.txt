@@ -1,4 +1,4 @@
-(CURRENTLY IN PROGRESS)
+(CURRENTLY IN PROGRESS: Implementing Table joins.)
 
 This is the capstone project in UC Berkeley's CS 61B, where you implement a
 database management system that a user can interact with via a language
@@ -10,12 +10,12 @@ I learned how to:
         Final design:
             LinkedHashMap<Integer, LinkedHashMap<String, String>>
                 See Table.java for more details.
-        Design attempts that failed:
+        Flawed design attempts:
             a.) String[][]
             b.) HashMap<String, ArrayList>
             c.) LinkedHashMap<String, LinkedHashMap<String, String>>
                 This one has a subtle difference from the final design, but
-                it's use is too complicated to explain and eventually becomes a
+                its use is too complicated to explain and eventually becomes a
                 nasty problem in the join() function.
     2.) ...
 
