@@ -54,10 +54,11 @@ public class Table {
      * Returns the Nth row from the table, where row 0 is the row
      * containing column names, and row 1 is the first row of elements.
      * This function makes join() so much easier to implement.
+     * 0 <= N <= numRows
      */
     public String[] getRow(int N) {
         String[] rowElements;
-        if (N < 0) {
+        if (N < 0 || N > numRows) {
             rowElements = null;
         } else if (N == 0) {
             rowElements = new String[numColumns];
@@ -71,6 +72,56 @@ public class Table {
             }
         }
         return rowElements;
+    }
+
+    /**
+     * Gets the value in the table at the specified row and column.
+     * Row 1: first row of values
+     * Column 1: first column of values
+     * So, to get the top left value, row == 1 and col == 1.
+     *
+     * @return  value   if in bounds
+     *          null    if not in bounds
+     */
+    public String getVal(int row, int col) {
+        if (row < 1 || col < 1 || row > numRows || col > numColumns)
+            return null;
+
+        String[] rowElements = getRow(row);
+        return rowElements[col - 1];
+    }
+
+    /**
+     * Returns the Nth column of values from the table, where column 1 is the
+     * first column. Does not include the column name.
+     * 1 <= N <= numColumns
+     */
+    public String[] getCol(int N) {
+        String[] colElements;
+        if (N < 1 || N > numColumns) {
+            colElements = null;
+        } else {
+            colElements = new String[numRows];
+            int index = 0;
+            for (int i = 1; i <= numRows; i++) {
+                colElements[index] = getVal(i, N);
+                index++;
+            }
+        }
+        return colElements;
+    }
+
+    /**
+     * Returns the Nth column of values from the table corresponding to the
+     * column name passed in as the argument. Does not include the column name.
+     */
+    public String[] getCol(String columnName) {
+        for (int i = 0; i < numColumns; i++) {
+            if (columnNames[i] == columnName) {
+                return getCol(i + 1);
+            }
+        }
+        return null;
     }
 
     /** Prints the column names in the Table. */
@@ -176,6 +227,19 @@ public class Table {
                 }
             }
             return ret;
+        }
+
+        for (String name : sharedColumns) {
+            /* Left table */
+            String[] col_a = a.getCol(name);
+            String[] col_b = b.getCol(name);
+            for (String val_a : col_a) {
+                for (String val_b : col_b) {
+                    if (val_a == val_b) {
+                        
+                    }
+                }
+            }
         }
 
         /* Iterate through the left table first. */

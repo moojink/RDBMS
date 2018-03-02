@@ -1,7 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="56713888-6df4-4e63-b450-68aafad94c38" name="Default" comment="" />
+    <list default="true" id="56713888-6df4-4e63-b450-68aafad94c38" name="Default" comment="">
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Table.java" afterPath="$PROJECT_DIR$/Table.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/TableTest.java" afterPath="$PROJECT_DIR$/TableTest.java" />
+    </list>
     <ignored path="$PROJECT_DIR$/out/" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -18,14 +22,14 @@
       <file leaf-file-name="Table.java" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/Table.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="135">
-              <caret line="9" column="22" lean-forward="true" selection-start-line="9" selection-start-column="22" selection-end-line="9" selection-end-column="22" />
+            <state relative-caret-position="214">
+              <caret line="238" column="24" lean-forward="true" selection-start-line="238" selection-start-column="24" selection-end-line="238" selection-end-column="24" />
               <folding>
                 <element signature="e#1432#1433#0" expanded="true" />
                 <element signature="e#1462#1463#0" expanded="true" />
                 <element signature="e#1549#1550#0" expanded="true" />
                 <element signature="e#1582#1583#0" expanded="true" />
-                <element signature="e#4885#4893#0" expanded="true" />
+                <element signature="e#6451#6459#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -34,8 +38,8 @@
       <file leaf-file-name="README.txt" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/README.txt">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="30">
-              <caret line="2" column="44" lean-forward="false" selection-start-line="2" selection-start-column="44" selection-end-line="2" selection-end-column="44" />
+            <state relative-caret-position="435">
+              <caret line="29" column="0" lean-forward="false" selection-start-line="29" selection-start-column="0" selection-end-line="29" selection-end-column="0" />
               <folding />
             </state>
           </provider>
@@ -44,8 +48,8 @@
       <file leaf-file-name="TableTest.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/TableTest.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="344">
-              <caret line="105" column="38" lean-forward="false" selection-start-line="105" selection-start-column="38" selection-end-line="105" selection-end-column="38" />
+            <state relative-caret-position="283">
+              <caret line="45" column="47" lean-forward="true" selection-start-line="45" selection-start-column="47" selection-end-line="45" selection-end-column="47" />
               <folding>
                 <element signature="imports" expanded="true" />
               </folding>
@@ -69,7 +73,12 @@
       <find>numRows</find>
       <find>getRow</find>
       <find>addRow</find>
+      <find>getValue</find>
+      <find>getCol</find>
     </findStrings>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="GradleLocalSettings">
     <option name="externalProjectsViewState">
@@ -91,6 +100,7 @@
     <option name="width" value="1235" />
     <option name="height" value="740" />
   </component>
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectView">
     <navigator currentView="ProjectPane" proportions="" version="1">
       <flattenPackages />
@@ -145,7 +155,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="JUnit.TableTest.testJoin">
+  <component name="RunManager" selected="JUnit.TableTest.testGetCol">
     <configuration name="TableTest" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <extension name="coverage" enabled="false" merge="false" sample_coverage="true" runner="idea" />
       <option name="MAIN_CLASS_NAME" value="TableTest" />
@@ -160,14 +170,34 @@
       <module name="proj2" />
       <envs />
     </configuration>
-    <configuration name="TableTest.testGetRow" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+    <configuration name="TableTest.testGetCol" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <extension name="coverage" enabled="false" merge="false" sample_coverage="true" runner="idea" />
       <module name="proj2" />
       <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
       <option name="ALTERNATIVE_JRE_PATH" />
       <option name="PACKAGE_NAME" value="" />
       <option name="MAIN_CLASS_NAME" value="TableTest" />
-      <option name="METHOD_NAME" value="testGetRow" />
+      <option name="METHOD_NAME" value="testGetCol" />
+      <option name="TEST_OBJECT" value="method" />
+      <option name="VM_PARAMETERS" value="-ea" />
+      <option name="PARAMETERS" />
+      <option name="WORKING_DIRECTORY" value="$MODULE_DIR$" />
+      <option name="ENV_VARIABLES" />
+      <option name="PASS_PARENT_ENVS" value="true" />
+      <option name="TEST_SEARCH_SCOPE">
+        <value defaultName="singleModule" />
+      </option>
+      <envs />
+      <patterns />
+    </configuration>
+    <configuration name="TableTest.testGetVal" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <extension name="coverage" enabled="false" merge="false" sample_coverage="true" runner="idea" />
+      <module name="proj2" />
+      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
+      <option name="ALTERNATIVE_JRE_PATH" />
+      <option name="PACKAGE_NAME" value="" />
+      <option name="MAIN_CLASS_NAME" value="TableTest" />
+      <option name="METHOD_NAME" value="testGetVal" />
       <option name="TEST_OBJECT" value="method" />
       <option name="VM_PARAMETERS" value="-ea" />
       <option name="PARAMETERS" />
@@ -188,26 +218,6 @@
       <option name="PACKAGE_NAME" value="" />
       <option name="MAIN_CLASS_NAME" value="TableTest" />
       <option name="METHOD_NAME" value="testJoin" />
-      <option name="TEST_OBJECT" value="method" />
-      <option name="VM_PARAMETERS" value="-ea" />
-      <option name="PARAMETERS" />
-      <option name="WORKING_DIRECTORY" value="$MODULE_DIR$" />
-      <option name="ENV_VARIABLES" />
-      <option name="PASS_PARENT_ENVS" value="true" />
-      <option name="TEST_SEARCH_SCOPE">
-        <value defaultName="singleModule" />
-      </option>
-      <envs />
-      <patterns />
-    </configuration>
-    <configuration name="TableTest.testSharedColumns" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
-      <extension name="coverage" enabled="false" merge="false" sample_coverage="true" runner="idea" />
-      <module name="proj2" />
-      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
-      <option name="ALTERNATIVE_JRE_PATH" />
-      <option name="PACKAGE_NAME" value="" />
-      <option name="MAIN_CLASS_NAME" value="TableTest" />
-      <option name="METHOD_NAME" value="testSharedColumns" />
       <option name="TEST_OBJECT" value="method" />
       <option name="VM_PARAMETERS" value="-ea" />
       <option name="PARAMETERS" />
@@ -322,19 +332,19 @@
       <listeners />
     </configuration>
     <list size="5">
-      <item index="0" class="java.lang.String" itemvalue="JUnit.TableTest.testGetRow" />
-      <item index="1" class="java.lang.String" itemvalue="JUnit.TableTest.testSharedColumns" />
-      <item index="2" class="java.lang.String" itemvalue="JUnit.TableTest.testUniqueColumns" />
-      <item index="3" class="java.lang.String" itemvalue="JUnit.TableTest.testJoin" />
-      <item index="4" class="java.lang.String" itemvalue="Application.TableTest" />
+      <item index="0" class="java.lang.String" itemvalue="JUnit.TableTest.testUniqueColumns" />
+      <item index="1" class="java.lang.String" itemvalue="JUnit.TableTest.testJoin" />
+      <item index="2" class="java.lang.String" itemvalue="Application.TableTest" />
+      <item index="3" class="java.lang.String" itemvalue="JUnit.TableTest.testGetVal" />
+      <item index="4" class="java.lang.String" itemvalue="JUnit.TableTest.testGetCol" />
     </list>
     <recent_temporary>
       <list size="5">
-        <item index="0" class="java.lang.String" itemvalue="JUnit.TableTest.testJoin" />
-        <item index="1" class="java.lang.String" itemvalue="Application.TableTest" />
-        <item index="2" class="java.lang.String" itemvalue="JUnit.TableTest.testUniqueColumns" />
-        <item index="3" class="java.lang.String" itemvalue="JUnit.TableTest.testSharedColumns" />
-        <item index="4" class="java.lang.String" itemvalue="JUnit.TableTest.testGetRow" />
+        <item index="0" class="java.lang.String" itemvalue="JUnit.TableTest.testGetCol" />
+        <item index="1" class="java.lang.String" itemvalue="JUnit.TableTest.testGetVal" />
+        <item index="2" class="java.lang.String" itemvalue="JUnit.TableTest.testJoin" />
+        <item index="3" class="java.lang.String" itemvalue="Application.TableTest" />
+        <item index="4" class="java.lang.String" itemvalue="JUnit.TableTest.testUniqueColumns" />
       </list>
     </recent_temporary>
   </component>
@@ -352,20 +362,26 @@
     <servers />
   </component>
   <component name="TestHistory">
-    <history-entry file="TableTest_testConstructor - 2018.02.20 at 19h 53m 59s.xml">
-      <configuration name="TableTest.testConstructor" configurationId="JUnit" />
+    <history-entry file="TableTest_testGetCol - 2018.03.01 at 23h 28m 39s.xml">
+      <configuration name="TableTest.testGetCol" configurationId="JUnit" />
     </history-entry>
-    <history-entry file="TableTest_testGetRow - 2018.02.20 at 19h 54m 17s.xml">
-      <configuration name="TableTest.testGetRow" configurationId="JUnit" />
+    <history-entry file="TableTest_testGetCol - 2018.03.01 at 23h 30m 20s.xml">
+      <configuration name="TableTest.testGetCol" configurationId="JUnit" />
     </history-entry>
-    <history-entry file="TableTest_testGetRow - 2018.02.20 at 19h 57m 01s.xml">
-      <configuration name="TableTest.testGetRow" configurationId="JUnit" />
+    <history-entry file="TableTest_testGetCol - 2018.03.01 at 23h 30m 29s.xml">
+      <configuration name="TableTest.testGetCol" configurationId="JUnit" />
     </history-entry>
-    <history-entry file="TableTest_testGetRow - 2018.02.20 at 19h 59m 11s.xml">
-      <configuration name="TableTest.testGetRow" configurationId="JUnit" />
+    <history-entry file="TableTest_testGetCol - 2018.03.01 at 23h 30m 46s.xml">
+      <configuration name="TableTest.testGetCol" configurationId="JUnit" />
     </history-entry>
-    <history-entry file="TableTest_testJoin - 2018.02.20 at 18h 51m 25s.xml">
-      <configuration name="TableTest.testJoin" configurationId="JUnit" />
+    <history-entry file="TableTest_testGetCol - 2018.03.01 at 23h 44m 34s.xml">
+      <configuration name="TableTest.testGetCol" configurationId="JUnit" />
+    </history-entry>
+    <history-entry file="TableTest_testGetVal - 2018.03.01 at 23h 13m 48s.xml">
+      <configuration name="TableTest.testGetVal" configurationId="JUnit" />
+    </history-entry>
+    <history-entry file="TableTest_testGetVal - 2018.03.01 at 23h 14m 42s.xml">
+      <configuration name="TableTest.testGetVal" configurationId="JUnit" />
     </history-entry>
     <history-entry file="TableTest_testJoin - 2018.02.20 at 19h 59m 25s.xml">
       <configuration name="TableTest.testJoin" configurationId="JUnit" />
@@ -375,12 +391,6 @@
     </history-entry>
     <history-entry file="TableTest_testJoin - 2018.02.20 at 20h 05m 05s.xml">
       <configuration name="TableTest.testJoin" configurationId="JUnit" />
-    </history-entry>
-    <history-entry file="TableTest_testSharedColumns - 2018.02.20 at 19h 59m 16s.xml">
-      <configuration name="TableTest.testSharedColumns" configurationId="JUnit" />
-    </history-entry>
-    <history-entry file="TableTest_testUniqueColumns - 2018.02.20 at 19h 59m 21s.xml">
-      <configuration name="TableTest.testUniqueColumns" configurationId="JUnit" />
     </history-entry>
   </component>
   <component name="ToolWindowManager">
@@ -396,7 +406,7 @@
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Maven Projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.30542636" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
-      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="false" weight="0.33" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
+      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
       <window_info id="Style Checker" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
       <window_info id="Capture Tool" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
@@ -422,7 +432,7 @@
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
-      <option name="time" value="14" />
+      <option name="time" value="17" />
     </breakpoint-manager>
     <watches-manager>
       <configuration name="JUnit">
@@ -440,7 +450,7 @@
             <element signature="e#1462#1463#0" expanded="true" />
             <element signature="e#1549#1550#0" expanded="true" />
             <element signature="e#1582#1583#0" expanded="true" />
-            <element signature="e#4885#4893#0" expanded="true" />
+            <element signature="e#6451#6459#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -462,7 +472,7 @@
             <element signature="e#1462#1463#0" expanded="true" />
             <element signature="e#1549#1550#0" expanded="true" />
             <element signature="e#1582#1583#0" expanded="true" />
-            <element signature="e#4885#4893#0" expanded="true" />
+            <element signature="e#6451#6459#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -484,7 +494,7 @@
             <element signature="e#1462#1463#0" expanded="true" />
             <element signature="e#1549#1550#0" expanded="true" />
             <element signature="e#1582#1583#0" expanded="true" />
-            <element signature="e#4885#4893#0" expanded="true" />
+            <element signature="e#6451#6459#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -516,7 +526,7 @@
             <element signature="e#1462#1463#0" expanded="true" />
             <element signature="e#1549#1550#0" expanded="true" />
             <element signature="e#1582#1583#0" expanded="true" />
-            <element signature="e#4885#4893#0" expanded="true" />
+            <element signature="e#6451#6459#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -548,7 +558,7 @@
             <element signature="e#1462#1463#0" expanded="true" />
             <element signature="e#1549#1550#0" expanded="true" />
             <element signature="e#1582#1583#0" expanded="true" />
-            <element signature="e#4885#4893#0" expanded="true" />
+            <element signature="e#6451#6459#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -565,16 +575,16 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/README.txt">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="30">
-          <caret line="2" column="44" lean-forward="false" selection-start-line="2" selection-start-column="44" selection-end-line="2" selection-end-column="44" />
+        <state relative-caret-position="435">
+          <caret line="29" column="0" lean-forward="false" selection-start-line="29" selection-start-column="0" selection-end-line="29" selection-end-column="0" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/TableTest.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="344">
-          <caret line="105" column="38" lean-forward="false" selection-start-line="105" selection-start-column="38" selection-end-line="105" selection-end-column="38" />
+        <state relative-caret-position="283">
+          <caret line="45" column="47" lean-forward="true" selection-start-line="45" selection-start-column="47" selection-end-line="45" selection-end-column="47" />
           <folding>
             <element signature="imports" expanded="true" />
           </folding>
@@ -583,14 +593,14 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/Table.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="135">
-          <caret line="9" column="22" lean-forward="true" selection-start-line="9" selection-start-column="22" selection-end-line="9" selection-end-column="22" />
+        <state relative-caret-position="214">
+          <caret line="238" column="24" lean-forward="true" selection-start-line="238" selection-start-column="24" selection-end-line="238" selection-end-column="24" />
           <folding>
             <element signature="e#1432#1433#0" expanded="true" />
             <element signature="e#1462#1463#0" expanded="true" />
             <element signature="e#1549#1550#0" expanded="true" />
             <element signature="e#1582#1583#0" expanded="true" />
-            <element signature="e#4885#4893#0" expanded="true" />
+            <element signature="e#6451#6459#0" expanded="true" />
           </folding>
         </state>
       </provider>

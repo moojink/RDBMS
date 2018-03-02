@@ -26,6 +26,51 @@ public class TableTest {
         assertEquals(row3, T1.getRow(3));
     }
 
+    /** Tests getCol(int N) and getCol(String columnName). */
+    @Test
+    public void testGetCol() {
+        String[] columns = new String[]{"X int", "Y int"};
+        Table T1 = new Table(2, columns);
+        String[] row1 = new String[]{"2", "5"};
+        String[] row2 = new String[]{"8", "3"};
+        String[] row3 = new String[]{"14", "7"};
+        T1.addRow(row1);
+        T1.addRow(row2);
+        T1.addRow(row3);
+
+        String[] col1 = new String[]{"2", "8", "14"};
+        String[] col2 = new String[]{"5", "3", "7"};
+
+        assertEquals(col1, T1.getCol(1));
+        assertEquals(col2, T1.getCol(2));
+        assertEquals(col1, T1.getCol("X int"));
+        assertEquals(col2, T1.getCol("Y int"));
+    }
+
+    /** Tests getVal(). */
+    @Test
+    public void testGetVal() {
+        String[] columns = new String[]{"X int", "Y int"};
+        Table T1 = new Table(2, columns);
+        String[] row1 = new String[]{"2", "5"};
+        String[] row2 = new String[]{"8", "3"};
+        String[] row3 = new String[]{"14", "7"};
+        T1.addRow(row1);
+        T1.addRow(row2);
+        T1.addRow(row3);
+
+        assertEquals(null, T1.getVal(0, 1));
+        assertEquals(null, T1.getVal(1, 0));
+        assertEquals(null, T1.getVal(4, 1));
+        assertEquals(null, T1.getVal(1, 3));
+        assertEquals("2", T1.getVal(1, 1));
+        assertEquals("5", T1.getVal(1, 2));
+        assertEquals("8", T1.getVal(2, 1));
+        assertEquals("3", T1.getVal(2, 2));
+        assertEquals("14", T1.getVal(3, 1));
+        assertEquals("7", T1.getVal(3, 2));
+    }
+
     /** Tests sharedColumns(). */
     @Test
     public void testSharedColumns() {
