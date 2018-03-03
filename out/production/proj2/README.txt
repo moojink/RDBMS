@@ -1,11 +1,11 @@
-(CURRENTLY IN PROGRESS: Implementing Table joins.)
+(CURRENTLY IN PROGRESS: Implementing Database language parser)
 
 This is the capstone project in UC Berkeley's CS 61B, where you implement a
 database management system that a user can interact with via a language
 similar to SQL.
 
 I learned how to:
-    1.) Design and implement a Table class by experimenting with different
+    1.) Design and implement a Table structure by experimenting with different
         data structures (maps, lists, sets, arrays).
         Final design:
             LinkedHashMap<Integer, LinkedHashMap<String, String>>

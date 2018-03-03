@@ -13,6 +13,7 @@ import java.util.*;
  */
 public class Table {
     private int numRows;    // excluding row 0 (column names)
+    private String name;    // name of the table: <name>.tbl
     private final int numColumns;
     private String[] columnNames;
     private LinkedHashMap<Integer, LinkedHashMap<String, String>> table;
@@ -39,6 +40,16 @@ public class Table {
         for (int i = 0; i < values.length; i++) {
             table.get(numRows).put(columnNames[i], values[i]);
         }
+    }
+
+    /** Gets the name of the table. */
+    public String getName() {
+        return name;
+    }
+
+    /** Sets the name of the table. */
+    public void setName(String name) {
+        this.name = name;
     }
 
     /** Returns the number of rows in a table. */

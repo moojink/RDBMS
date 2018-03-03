@@ -52,6 +52,8 @@ public class Database {
         Matcher m;
         if ((m = LOAD_CMD.matcher(query)).matches()) {
             result = loadTable(m.group(1));
+        } else if ((m = PRINT_CMD.matcher(query)).matches()) {
+            result = printTable(m.group(1));
         }
 
 //        if ((m = CREATE_CMD.matcher(query)).matches()) {
@@ -153,7 +155,7 @@ public class Database {
                 index = 0;
                 value = "";
             }
-            table.printTable(); //DEBUG
+            table.setName(name);
             tables.add(table);
             reader.close();
         } catch (FileNotFoundException e) {
@@ -181,11 +183,18 @@ public class Database {
 //
 //        System.out.printf("You are trying to insert the row \"%s\" into the table %s\n", m.group(2), m.group(1));
 //    }
-//
-//    private static void printTable(String name) {
-//        System.out.printf("You are trying to print the table named %s\n", name);
-//    }
-//
+
+    private static String printTable(String name) {
+        for (Table table : tables) {
+            String temp = table.getName();
+            if (temp.equals(name)) {
+                table.printTable();
+                return "";
+            }
+        }
+        return "ERROR: No such table: " + name;
+    }
+
 //    private static void select(String expr) {
 //        Matcher m = SELECT_CLS.matcher(expr);
 //        if (!m.matches()) {
