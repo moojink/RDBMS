@@ -1,3 +1,5 @@
+package db;
+
 import java.util.*;
 
 /**
@@ -10,16 +12,15 @@ import java.util.*;
  * @author Moo Jin Kim
  */
 public class Table {
-    /* Instance variables */
     private int numRows;    // excluding row 0 (column names)
     private final int numColumns;
     private String[] columnNames;
     private LinkedHashMap<Integer, LinkedHashMap<String, String>> table;
 
     /** Creates a Table with a fixed number of columns and column names. */
-    public Table(int numColumns, String[] columnNames) {
+    public Table(String[] columnNames) {
         this.numRows = 0;
-        this.numColumns = numColumns;
+        this.numColumns = columnNames.length;
         this.columnNames = new String[this.numColumns];
         System.arraycopy(columnNames, 0, this.columnNames, 0,
                          this.numColumns);
@@ -92,6 +93,18 @@ public class Table {
     }
 
     /**
+     * Gets the value in the table at the Nth row and corresponding to
+     * the column name.
+     */
+    public String getVal(int N, String name) {
+        if (N < 1 || N > numRows)
+            return null;
+
+        String[] column = getCol(name);
+        return column[N - 1];
+    }
+
+    /**
      * Returns the Nth column of values from the table, where column 1 is the
      * first column. Does not include the column name.
      * 1 <= N <= numColumns
@@ -112,7 +125,7 @@ public class Table {
     }
 
     /**
-     * Returns the Nth column of values from the table corresponding to the
+     * Returns the column of values from the table corresponding to the
      * column name passed in as the argument. Does not include the column name.
      */
     public String[] getCol(String columnName) {
@@ -124,10 +137,52 @@ public class Table {
         return null;
     }
 
+    /**
+     * Returns the Nth row, excluding values from columns whose names match
+     * the names in the array passed in as an argument. Although getRow()
+     * can get the 0th row (column names), this function cannot.
+     */
+    public String[] getRestOfRow(int N, String[] arr) {
+        if (N < 1 || N > numRows || arr == null)
+            return null;
+
+        String[] entireRow = getRow(N);
+        int amountRemoved = 0;
+        for (int i = 0; i < numColumns; i++) {
+            for (int j = 0; j < arr.length; j++) {
+                /* If the column name matches one of the names in arr, remove
+                   the value from the row. */
+                if (columnNames[i] == arr[j]) {
+                    entireRow[i] = null;
+                    amountRemoved++;
+                    break;
+                }
+            }
+        }
+
+        /* Now return the non-null values. */
+        int len = numColumns - amountRemoved;
+        int index = 0;
+        String[] restOfRow = new String[len];
+        for (int i = 0; i < numColumns; i++) {
+            if (entireRow[i] != null) {
+                restOfRow[index] = entireRow[i];
+                index++;
+            }
+        }
+        return restOfRow;
+    }
+
     /** Prints the column names in the Table. */
     public void printColumns() {
+        int count = 1;
         for (String name : columnNames) {
-            System.out.print(name + "\t");
+            System.out.print(name);
+            /* Don't end the line with a comma. */
+            if (count != numColumns) {
+                System.out.print(",");
+            }
+            count++;
         }
         System.out.print("\n");
     }
@@ -137,14 +192,19 @@ public class Table {
         for (Map.Entry<Integer, LinkedHashMap<String, String>>
                 outerEntry : table.entrySet())
         {
+            int count = 1;
             for (Map.Entry<String, String> innerEntry :
                  outerEntry.getValue().entrySet())
             {
-                System.out.print(innerEntry.getValue() + "\t");
+                System.out.print(innerEntry.getValue());
+                /* Don't end the line with a comma. */
+                if (count != numColumns) {
+                    System.out.print(",");
+                }
+                count++;
             }
             System.out.print("\n");
         }
-        System.out.print("\n");
     }
 
     /** Prints the Table. */
@@ -200,6 +260,10 @@ public class Table {
         ArrayList<String> rightUniqueColumns = uniqueColumns(b, a);
 
         /* Initialize the combined table. */
+        int nRow_a = a.getNumRows();
+        int nCol_a = a.getNumColumns();
+        int nRow_b = b.getNumRows();
+        int nCol_b = b.getNumColumns();
         ArrayList<String> temp = new ArrayList<String>();
         temp.addAll(sharedColumns);
         temp.addAll(leftUniqueColumns);
@@ -207,15 +271,11 @@ public class Table {
         int len = sharedColumns.size() + leftUniqueColumns.size() +
                   rightUniqueColumns.size();
         String[] columnNames = temp.toArray(new String[0]); // from StckOvflw
-        Table ret = new Table(len, columnNames);
+        Table ret = new Table(columnNames);
 
         /* If there are no shared columns, return the Cartesian Product of the
            two tables. */
         if (sharedColumns.size() == 0) {
-            int nRow_a = a.getNumRows();
-            int nCol_a = a.getNumColumns();
-            int nRow_b = a.getNumRows();
-            int nCol_b = a.getNumColumns();
             for (int i = 1; i <= nRow_a; i++) {
                 for (int j = 1; j <= nRow_b; j++) {
                     String[] rowElements = new String[len];
@@ -229,45 +289,71 @@ public class Table {
             return ret;
         }
 
-        for (String name : sharedColumns) {
-            /* Left table */
-            String[] col_a = a.getCol(name);
-            String[] col_b = b.getCol(name);
-            for (String val_a : col_a) {
-                for (String val_b : col_b) {
-                    if (val_a == val_b) {
-                        
+
+        /* If there are shared columns, return merged rows i.f.f. values
+           in every shared column match. */
+
+        /* For each row in the left table... */
+        for (int i = 1; i <= nRow_a; i++) {
+            /* Create an array containing only the values in the shared
+               columns, in the same order as the shared columns in the final
+               table. */
+            String[] arr_a = new String[sharedColumns.size()];
+            int index_a = 0;
+            for (String name : sharedColumns) {
+                arr_a[index_a] = a.getVal(i, name);
+                index_a++;
+            }
+
+            /* Do the same for each row in the right table while comparing the
+               arrays. If the left table array matches the right table array,
+               then merge the rest of those rows together. */
+            for (int j = 1; j <= nRow_b; j++) {
+                String[] arr_b = new String[sharedColumns.size()];
+                int index_b = 0;
+                for (String name: sharedColumns) {
+                    arr_b[index_b] = b.getVal(j, name);
+                    index_b++;
+                }
+                if (Arrays.equals(arr_a, arr_b)) {
+                    int index_r = 0;
+                    String[] rowToAdd = new String[len];
+                    String[] sharedColumnNames = sharedColumns.toArray(new String[0]);
+                    String[] ror_a = a.getRestOfRow(i, sharedColumnNames);
+                    String[] ror_b = b.getRestOfRow(j, sharedColumnNames);
+
+                    /* Add in the shared column values. */
+                    System.arraycopy(arr_a, 0, rowToAdd, 0, arr_a.length);
+                    index_r += arr_a.length;
+
+                    /* Add in the left table row's values. */
+                    for (String val : ror_a) {
+                        rowToAdd[index_r] = val;
+                        index_r++;
                     }
+                    /* Add in the right table row's values.*/
+                    for (String val : ror_b) {
+                        rowToAdd[index_r] = val;
+                        index_r++;
+                    }
+                    ret.addRow(rowToAdd);
                 }
             }
         }
+        return ret;
+    }
 
-        /* Iterate through the left table first. */
-        /* Merge rows i.f.f. values in every shared column match. */
-        for (Map.Entry<Integer, LinkedHashMap<String, String>> row :
-             a.table.entrySet()) // each row
-        {
-
-            for (Map.Entry<String, String> column :
-                    row.getValue().entrySet())
-            {
-
-            }
+    /** Combines multiple tables and returns the result. */
+    public static Table join(Table[] arr) {
+        Table ret = null;
+        int size = arr.length;
+        for (int i = 1; i < size; i++) {
+            arr[i] = join(arr[i - 1], arr[i]);
         }
-        /* Merge rows i.f.f. values in every shared column match. */
-        return null;
+        return arr[size - 1];
     }
 
     public static void main(String[] args) {
-        String[] columns = new String[]{"X int", "Y int"};
-        Table T1 = new Table(2, columns);
-        String[] row1 = new String[]{"2", "5"};
-        String[] row2 = new String[]{"8", "3"};
-        String[] row3 = new String[]{"13", "7"};
-        T1.addRow(row1);
-        T1.addRow(row2);
-        T1.addRow(row3);
-        T1.printTable();
-        System.out.println("Done!");
+
     }
 }
