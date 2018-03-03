@@ -1,4 +1,4 @@
-(CURRENTLY IN PROGRESS: Implementing Database language parser)
+(IN PROGRESS: Implementing Database language parser)
 
 This is the capstone project in UC Berkeley's CS 61B, where you implement a
 database management system that a user can interact with via a language
