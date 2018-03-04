@@ -113,34 +113,34 @@ public class TableTest {
     /** Tests sharedColumns(). */
     @Test
     public void testSharedColumns() {
-        String[] columns1 = new String[]{"W", "X", "Y", "Z"};
+        String[] columns1 = new String[]{"W int", "X int", "Y int", "Z int"};
         Table t1 = new Table(columns1);
 
-        String[] columns2 = new String[]{"A", "Y", "Z", "B"};
+        String[] columns2 = new String[]{"A int", "Y int", "Z int", "B int"};
         Table t2 = new Table(columns2);
 
         ArrayList<String> columns = Table.sharedColumns(t1, t2);
-        assertEquals(true, columns.contains("Y"));
-        assertEquals(true, columns.contains("Z"));
+        assertEquals(true, columns.contains("Y int"));
+        assertEquals(true, columns.contains("Z int"));
         assertEquals(2, columns.size());
     }
 
     /** Tests uniqueColumns(). */
     @Test
     public void testUniqueColumns() {
-        String[] columns1 = new String[]{"W", "X", "Y", "Z"};
+        String[] columns1 = new String[]{"W int", "X int", "Y int", "Z int"};
         Table t1 = new Table(columns1);
 
-        String[] columns2 = new String[]{"A", "Y", "Z", "B"};
+        String[] columns2 = new String[]{"A int", "Y int", "Z int", "B int"};
         Table t2 = new Table(columns2);
 
         ArrayList<String> unique_t1 = Table.uniqueColumns(t1, t2);
         ArrayList<String> unique_t2 = Table.uniqueColumns(t2, t1);
 
-        assertEquals(true, unique_t1.contains("W"));
-        assertEquals(true, unique_t1.contains("X"));
-        assertEquals(true, unique_t2.contains("A"));
-        assertEquals(true, unique_t2.contains("B"));
+        assertEquals(true, unique_t1.contains("W int"));
+        assertEquals(true, unique_t1.contains("X int"));
+        assertEquals(true, unique_t2.contains("A int"));
+        assertEquals(true, unique_t2.contains("B int"));
         assertEquals(2, unique_t1.size());
         assertEquals(2, unique_t2.size());
     }
@@ -149,26 +149,26 @@ public class TableTest {
     @Test
     public void testJoin() {
         /* Part 1: Cartesian Product of two tables. */
-        String[] columns1 = new String[]{"X", "Y"};
+        String[] columns1 = new String[]{"X int", "Y int"};
         Table t1 = new Table(columns1);
-        String[] columns2 = new String[]{"A", "B"};
+        String[] columns2 = new String[]{"A int", "B int"};
         Table t2 = new Table(columns2);
 
         String[] t1_row1 = new String[]{"1", "2"};
         String[] t1_row2 = new String[]{"3", "4"};
-        String[] t2_row1 = new String[]{"a", "b"};
-        String[] t2_row2 = new String[]{"c", "d"};
+        String[] t2_row1 = new String[]{"5", "6"};
+        String[] t2_row2 = new String[]{"7", "8"};
         t1.addRow(t1_row1);
         t1.addRow(t1_row2);
         t2.addRow(t2_row1);
         t2.addRow(t2_row2);
 
         Table joinedTable = Table.join(t1, t2);
-        String[] jt_row0 = new String[]{"X", "Y", "A", "B"};
-        String[] jt_row1 = new String[]{"1", "2", "a", "b"};
-        String[] jt_row2 = new String[]{"1", "2", "c", "d"};
-        String[] jt_row3 = new String[]{"3", "4", "a", "b"};
-        String[] jt_row4 = new String[]{"3", "4", "c", "d"};
+        String[] jt_row0 = new String[]{"X int", "Y int", "A int", "B int"};
+        String[] jt_row1 = new String[]{"1", "2", "5", "6"};
+        String[] jt_row2 = new String[]{"1", "2", "7", "8"};
+        String[] jt_row3 = new String[]{"3", "4", "5", "6"};
+        String[] jt_row4 = new String[]{"3", "4", "7", "8"};
         assertEquals(4, joinedTable.getNumColumns());
         assertEquals(4, joinedTable.getNumRows()); // excludes row 0 from count
         assertEquals(jt_row0, joinedTable.getRow(0));
@@ -181,11 +181,11 @@ public class TableTest {
         joinedTable.printTable();
         /*
             Should print:
-            X	Y	A	B
-            1	2	a	b
-            1	2	c	d
-            3	4	a	b
-            3	4	c	d
+            X int,Y int,A int,B int
+            1,2,a,b
+            1,2,c,d
+            3,4,a,b
+            3,4,c,d
          */
 
         /* Part 2: Merging of rows. */
@@ -197,8 +197,8 @@ public class TableTest {
         //  [7 ][7 ]    [4 ][9 ]
         //  [1 ][9 ]    [5 ][10]
 
-        columns1 = new String[]{"x", "y"};
-        columns2 = new String[]{"x", "z"};
+        columns1 = new String[]{"x int", "y int"};
+        columns2 = new String[]{"x int", "z int"};
         t1 = new Table(columns1);
         t2 = new Table(columns2);
 
@@ -218,14 +218,18 @@ public class TableTest {
 
         joinedTable = Table.join(t1, t2);
 
-        jt_row0 = new String[]{"x", "y", "z"};
+        jt_row0 = new String[]{"x int", "y int", "z int"};
         assertEquals(3, joinedTable.getNumColumns());
         assertEquals(0, joinedTable.getNumRows()); // excludes row 0 from count
         assertEquals(jt_row0, joinedTable.getRow(0));
 
-        System.out.println("Test 2.4 (Merge)");
+        System.out.println("Test 2.0 (Merge)");
         joinedTable.printTable();
-        /* Should print nothing. */
+        /*
+            Should print:
+            Test 2.0 (Merge)
+            x int,y int,z int
+         */
 
 
         /* Part 2.1 */
@@ -236,8 +240,8 @@ public class TableTest {
         //  [13][7 ]    [10][1 ]
         //              [11][1 ]
 
-        columns1 = new String[]{"x", "y"};
-        columns2 = new String[]{"x", "z"};
+        columns1 = new String[]{"x int", "y int"};
+        columns2 = new String[]{"x int", "z int"};
         t1 = new Table(columns1);
         t2 = new Table(columns2);
 
@@ -260,7 +264,7 @@ public class TableTest {
 
         joinedTable = Table.join(t1, t2);
 
-        jt_row0 = new String[]{"x", "y", "z"};
+        jt_row0 = new String[]{"x int", "y int", "z int"};
         jt_row1 = new String[]{"2", "5", "4"};
         jt_row2 = new String[]{"8", "3", "9"};
         assertEquals(3, joinedTable.getNumColumns());
@@ -273,9 +277,10 @@ public class TableTest {
         joinedTable.printTable();
         /*
             Should print:
-            x   y   z
-            2   5   4
-            8   3   9
+            Test 2.1 (Merge)
+            x int,y int,z int
+            2,5,4
+            8,3,9
          */
 
 
@@ -287,8 +292,8 @@ public class TableTest {
         //  [3 ][6 ]    [1 ][9 ]    [1 ][4 ][11]
         //              [1 ][11]
 
-        columns1 = new String[]{"x", "y"};
-        columns2 = new String[]{"x", "z"};
+        columns1 = new String[]{"x int", "y int"};
+        columns2 = new String[]{"x int", "z int"};
         t1 = new Table(columns1);
         t2 = new Table(columns2);
 
@@ -310,7 +315,7 @@ public class TableTest {
 
         joinedTable = Table.join(t1, t2);
 
-        jt_row0 = new String[]{"x", "y", "z"};
+        jt_row0 = new String[]{"x int", "y int", "z int"};
         jt_row1 = new String[]{"1", "4", "7"};
         jt_row2 = new String[]{"1", "4", "9"};
         jt_row3 = new String[]{"1", "4", "11"};
@@ -325,10 +330,11 @@ public class TableTest {
         joinedTable.printTable();
         /*
             Should print:
-            x   y   z
-            1   4   7
-            1   4   9
-            1   4   11
+            Test 2.2 (Merge)
+            x int,y int,z int
+            1,4,7
+            1,4,9
+            1,4,11
          */
 
 
@@ -340,8 +346,8 @@ public class TableTest {
         //  [1 ][9 ][9 ][1 ]    [1 ][9 ][6 ]
         //                      [1 ][11][9 ]
 
-        columns1 = new String[]{"x", "y", "z", "w"};
-        columns2 = new String[]{"w", "b", "z"};
+        columns1 = new String[]{"x int", "y int", "z int", "w int"};
+        columns2 = new String[]{"w int", "b int", "z int"};
         t1 = new Table(columns1);
         t2 = new Table(columns2);
 
@@ -363,7 +369,7 @@ public class TableTest {
 
         joinedTable = Table.join(t1, t2);
 
-        jt_row0 = new String[]{"z", "w", "x", "y", "b"};
+        jt_row0 = new String[]{"z int", "w int", "x int", "y int", "b int"};
         jt_row1 = new String[]{"4", "1", "7", "7", "7"};
         jt_row2 = new String[]{"9", "1", "1", "9", "11"};
         assertEquals(5, joinedTable.getNumColumns());
@@ -376,9 +382,10 @@ public class TableTest {
         joinedTable.printTable();
         /*
             Should print:
-            z   w   x   y   b
-            4   1   7   7   7
-            9   1   1   9   11
+            Test 2.3 (Merge)
+            z int,w int,x int,y int,b int
+            4,1,7,7,7
+            9,1,1,9,11
          */
 
 
@@ -399,7 +406,7 @@ public class TableTest {
         //  [9 ][1 ][1 ][9 ][11][2 ]
 
 
-        String[] columns3 = new String[]{"z", "w", "c"};
+        String[] columns3 = new String[]{"z int", "w int", "c int"};
         String[] t3_row1 = new String[]{"4", "1", "7"};
         String[] t3_row2 = new String[]{"9", "1", "2"};
         String[] t3_row3 = new String[]{"9", "4", "5"};
@@ -410,7 +417,7 @@ public class TableTest {
         Table[] arr = new Table[]{t1, t2, t3};
 
         joinedTable = Table.join(arr);
-        jt_row0 = new String[]{"z", "w", "x", "y", "b", "c"};
+        jt_row0 = new String[]{"z int", "w int", "x int", "y int", "b int", "c int"};
         jt_row1 = new String[]{"4", "1", "7", "7", "7", "7"};
         jt_row2 = new String[]{"9", "1", "1", "9", "11", "2"};
         assertEquals(6, joinedTable.getNumColumns());
@@ -423,10 +430,38 @@ public class TableTest {
         joinedTable.printTable();
         /*
             Should print:
-            z   w   x   y   b   c
-            4   1   7   7   7   7
-            9   1   1   9   11  2
+            Test 3.0 (Merge 3 tables)
+            z int,w int,x int,y int,b int,c int
+            4,1,7,7,7,7
+            9,1,1,9,11,2
          */
+    }
+
+    @Test
+    public void testSetColumnTypes() {
+        /* Test 1: Returns true */
+        String[] columns1 = new String[]{"X int", "Y string", "Z float"};
+        Table t1 = new Table(columns1);
+        assertEquals(t1.setColumnTypes(columns1), true);
+        String[] columnTypes1 = t1.getColumnTypes();
+        assertEquals(columnTypes1[0], "int");
+        assertEquals(columnTypes1[1], "string");
+        assertEquals(columnTypes1[2], "float");
+
+        /* Test 2: Returns false */
+        columns1 = new String[]{"X int ", "Y string", "Z float"};
+        t1 = new Table(columns1);
+        assertEquals(t1.setColumnTypes(columns1), false);
+
+        /* Test 3: Returns false */
+        columns1 = new String[]{"X in", "Y string", "Z float"};
+        t1 = new Table(columns1);
+        assertEquals(t1.setColumnTypes(columns1), false);
+
+        /* Test 2: Returns false */
+        columns1 = new String[]{"X int", "Y String", "Z float"};
+        t1 = new Table(columns1);
+        assertEquals(t1.setColumnTypes(columns1), false);
     }
 
     public static void main(String[] args) {

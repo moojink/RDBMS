@@ -15,23 +15,109 @@ public class Table {
     private int numRows;    // excluding row 0 (column names)
     private String name;    // name of the table: <name>.tbl
     private final int numColumns;
+    private boolean isValid = true;  // set to false if format is incorrect
     private String[] columnNames;
+    private final String[] validTypes = new String[]{"string", "int", "float"};
+    private String[] columnTypes;
     private LinkedHashMap<Integer, LinkedHashMap<String, String>> table;
 
-    /** Creates a Table with a fixed number of columns and column names. */
+    /** Creates a Table with column names. */
     public Table(String[] columnNames) {
+        /* Check correct formatting. */
+        if (!areValidNames(columnNames) || !setColumnTypes(columnNames)) {
+            isValid = false;
+            numColumns = 0;
+            return;
+        }
+
+        /* Initialize Table. */
         this.numRows = 0;
         this.numColumns = columnNames.length;
         this.columnNames = new String[this.numColumns];
         System.arraycopy(columnNames, 0, this.columnNames, 0,
-                         this.numColumns);
+                this.numColumns);
         this.table = new LinkedHashMap<>();
     }
 
-    /** Adds a row to the table. */
-    public void addRow(String[] values) {
+    /** Creates a Table with column names and a name. */
+    public Table(String[] columnNames, String name) {
+        this(columnNames);  // one-argument constructor
+        this.name = name;
+    }
+
+    /**
+     * Adds a row to the table if its values match their corresponding column
+     * types.
+     *
+     * @return  true    if the values match their column types
+     *          false   if not
+     */
+    public boolean addRow(String[] values) {
         if (values == null) {
-            return;
+            return false;
+        }
+
+        /* For each value... */
+        for (int i = 0; i < values.length; i++) {
+            String value = values[i];
+            /* Get the corresponding column type. */
+            String type = columnTypes[i];
+
+            if (type.equals("string")) {
+                /* Verify that the value begins and ends with a single quote. */
+                char firstChar = value.charAt(0);
+                char lastChar = value.charAt(value.length() - 1);
+                if (firstChar != '\'' || lastChar != '\'') {
+                    return false;
+                }
+
+                /* Verify that the value does not contain newlines, tabs,
+                   commas, or quotes between the single quotes. */
+                for (int j = 1; j < value.length() - 1; j++) {
+                    char c = value.charAt(j);
+                    if (c == '\n' || c == '\t' || c == ',' ||
+                        c == '\'' || c == '\"')
+                    {
+                        return false;
+                    }
+                }
+            } else if (type.equals("int")) {
+                /* Verify that the value only contains digits, except for the
+                   first character, which may be a negative sign. */
+                char c = value.charAt(0);
+                if (!Character.isDigit(c) && c != '-') {
+                    return false;
+                }
+                for (int j = 1; j < value.length(); j++) {
+                    c = value.charAt(j);
+                    if (!Character.isDigit(c)) {
+                        return false;
+                    }
+                }
+            } else if (type.equals("float")) {
+                /* Verify that the value only contains digits and exactly
+                   one decimal point. The first character may be a decimal
+                   point, a negative sign, or a digit. */
+                char c = value.charAt(0);
+                if (!Character.isDigit(c) && c != '-' && c != '.') {
+                    return false;
+                }
+                int decimalPointCount = 0;
+                for (int j = 1; j < value.length(); j++) {
+                    c = value.charAt(j);
+                    if (!Character.isDigit(c) && c != '.') {
+                        return false;
+                    }
+                    if (c == '.') {
+                        decimalPointCount++;
+                    }
+                }
+                if (decimalPointCount > 1) {
+                    return false;
+                }
+            } else {
+                return false;
+            }
         }
 
         numRows++;
@@ -40,6 +126,7 @@ public class Table {
         for (int i = 0; i < values.length; i++) {
             table.get(numRows).put(columnNames[i], values[i]);
         }
+        return true;
     }
 
     /** Gets the name of the table. */
@@ -184,8 +271,13 @@ public class Table {
         return restOfRow;
     }
 
+    /** Get column names. */
+    public String[] getColumnNames() {
+        return columnNames;
+    }
+
     /** Prints the column names in the Table. */
-    public void printColumns() {
+    public void printColumnNames() {
         int count = 1;
         for (String name : columnNames) {
             System.out.print(name);
@@ -205,7 +297,7 @@ public class Table {
         {
             int count = 1;
             for (Map.Entry<String, String> innerEntry :
-                 outerEntry.getValue().entrySet())
+                    outerEntry.getValue().entrySet())
             {
                 System.out.print(innerEntry.getValue());
                 /* Don't end the line with a comma. */
@@ -220,8 +312,7 @@ public class Table {
 
     /** Prints the Table. */
     public void printTable() {
-        printColumns();
-        printRows();
+        System.out.print(getTableString());
     }
 
     /** Finds and returns a list of shared columns. */
@@ -362,6 +453,131 @@ public class Table {
             arr[i] = join(arr[i - 1], arr[i]);
         }
         return arr[size - 1];
+    }
+
+    /** Gets the string representation of the table. */
+    public String getTableString() {
+        String ret = "";
+
+        /* Store column names. */
+        int count = 1;
+        for (String name : columnNames) {
+            ret += name;
+            /* Don't end the line with a comma. */
+            if (count != numColumns) {
+                ret += ",";
+            }
+            count++;
+        }
+        ret += "\n";
+
+        /* Store rows. */
+        for (Map.Entry<Integer, LinkedHashMap<String, String>>
+                outerEntry : table.entrySet())
+        {
+            count = 1;
+            for (Map.Entry<String, String> innerEntry :
+                    outerEntry.getValue().entrySet())
+            {
+                ret += innerEntry.getValue();
+                /* Don't end the line with a comma. */
+                if (count != numColumns) {
+                    ret += ",";
+                }
+                count++;
+            }
+            ret += "\n";
+        }
+        return ret;
+    }
+
+    /**
+     * Sets column types.
+     *
+     * @return  true    if column names are formatted correctly
+     *          false   if not
+     */
+    public boolean setColumnTypes(String[] columnNames) {
+        columnTypes = new String[columnNames.length];
+
+        /* For every column name... */
+        for (int i = 0; i < columnNames.length; i++) {
+            String name = columnNames[i];
+            String substring;
+
+            /* Get the string after the space character, aka the type. */
+            if (name.contains(" ")) {
+                substring = name.substring(name.indexOf(' ') + 1);
+                if (substring == "") {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+
+            /* Check if the type is valid. */
+            boolean isValid = false;
+            for (int j = 0; j < validTypes.length; j++) {
+                if (validTypes[j].equals(substring)) {
+                    this.columnTypes[i] = validTypes[j];
+                    isValid = true;
+                }
+            }
+            if (!isValid) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /** Get column types. */
+    public String[] getColumnTypes() {
+        return columnTypes;
+    }
+
+    /** Returns whether or not the table is valid. */
+    public boolean isValid() {
+        return isValid;
+    }
+
+    /** Check if the table names are valid. */
+    public boolean areValidNames(String[] columnNames) {
+        /*
+         * Invariants:
+         * Column names must:
+         *      start with a letter,
+         *      have more than 1 character,
+         *      contain only letters, numbers, and/or underscores
+         */
+
+        /* For every column name... */
+        for (int i = 0; i < columnNames.length; i++) {
+            String name = columnNames[i];
+            /* Get the substring before the space character. */
+            String substring = name.substring(0, name.indexOf(" "));
+
+            /* Verify that the substring's length is at least 1. */
+            if (substring.length() < 1) {
+                return false;
+            }
+
+            /* Verify that the first character is a letter. */
+            if (!Character.isLetter(substring.charAt(0))) {
+                return false;
+            }
+
+            /* Verify that the rest of the characters are only letters,
+               numbers, or underscores. */
+            for (int j = 1; j < substring.length(); j++) {
+                char c = substring.charAt(j);
+                if (!Character.isLetter(c) && !Character.isDigit(c) &&
+                    c != '_')
+                {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     public static void main(String[] args) {
