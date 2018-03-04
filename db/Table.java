@@ -60,6 +60,11 @@ public class Table {
         /* For each value... */
         for (int i = 0; i < values.length; i++) {
             String value = values[i];
+
+            /* Accept NOVALUE inputs. */
+            if (value.equals("NOVALUE")) {
+                continue;
+            }
             /* Get the corresponding column type. */
             String type = columnTypes[i];
 
@@ -112,7 +117,7 @@ public class Table {
                         decimalPointCount++;
                     }
                 }
-                if (decimalPointCount > 1) {
+                if (decimalPointCount != 1) {
                     return false;
                 }
             } else {
@@ -228,7 +233,7 @@ public class Table {
      */
     public String[] getCol(String columnName) {
         for (int i = 0; i < numColumns; i++) {
-            if (columnNames[i] == columnName) {
+            if (columnNames[i].equals(columnName)) {
                 return getCol(i + 1);
             }
         }
@@ -250,7 +255,7 @@ public class Table {
             for (int j = 0; j < arr.length; j++) {
                 /* If the column name matches one of the names in arr, remove
                    the value from the row. */
-                if (columnNames[i] == arr[j]) {
+                if (columnNames[i].equals(arr[j])) {
                     entireRow[i] = null;
                     amountRemoved++;
                     break;
@@ -312,7 +317,7 @@ public class Table {
 
     /** Prints the Table. */
     public void printTable() {
-        System.out.print(getTableString());
+        System.out.print(toString());
     }
 
     /** Finds and returns a list of shared columns. */
@@ -320,7 +325,7 @@ public class Table {
         ArrayList<String> list = new ArrayList<>();
         for (String leftColumn : a.columnNames) {
             for (String rightColumn : b.columnNames) {
-                if (leftColumn == rightColumn) {
+                if (leftColumn.equals(rightColumn)) {
                     list.add(rightColumn);
                     break;
                 }
@@ -338,7 +343,7 @@ public class Table {
         for (String leftColumn : a.columnNames) {
             boolean isUnique = true;
             for (String rightColumn : b.columnNames) {
-                if (leftColumn == rightColumn) {
+                if (leftColumn.equals(rightColumn)) {
                     isUnique = false;
                     break;
                 }
@@ -352,6 +357,10 @@ public class Table {
 
     /** Combines two tables and returns the result. */
     public static Table join(Table a, Table b) {
+        if (a == null || b == null) {
+            return null;
+        }
+
         /* Find columns shared by both tables. */
         ArrayList<String> sharedColumns = sharedColumns(a, b);
 
@@ -456,10 +465,10 @@ public class Table {
     }
 
     /** Gets the string representation of the table. */
-    public String getTableString() {
+    public String toString() {
         String ret = "";
 
-        /* Store column names. */
+        /* Column names. */
         int count = 1;
         for (String name : columnNames) {
             ret += name;
@@ -471,7 +480,7 @@ public class Table {
         }
         ret += "\n";
 
-        /* Store rows. */
+        /* Rows. */
         for (Map.Entry<Integer, LinkedHashMap<String, String>>
                 outerEntry : table.entrySet())
         {
@@ -508,7 +517,7 @@ public class Table {
             /* Get the string after the space character, aka the type. */
             if (name.contains(" ")) {
                 substring = name.substring(name.indexOf(' ') + 1);
-                if (substring == "") {
+                if (substring.equals("")) {
                     return false;
                 }
             } else {

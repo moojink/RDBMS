@@ -56,39 +56,24 @@ public class Database {
     public static String eval(String query) {
         String result = "";
         Matcher m;
-        if ((m = LOAD_CMD.matcher(query)).matches()) {
+
+        if ((m = CREATE_CMD.matcher(query)).matches()) {
+            result = createTable(m.group(1));
+        } else if ((m = LOAD_CMD.matcher(query)).matches()) {
             result = loadTable(m.group(1));
-        } else if ((m = PRINT_CMD.matcher(query)).matches()) {
-            result = printTable(m.group(1));
         } else if ((m = STORE_CMD.matcher(query)).matches()) {
             result = storeTable(m.group(1));
         } else if ((m = DROP_CMD.matcher(query)).matches()) {
             result = dropTable(m.group(1));
-        } else if ((m = CREATE_CMD.matcher(query)).matches()) {
-            result = createTable(m.group(1));
         } else if ((m = INSERT_CMD.matcher(query)).matches()) {
             result = insertRow(m.group(1));
+        } else if ((m = PRINT_CMD.matcher(query)).matches()) {
+            result = printTable(m.group(1));
+        } else if ((m = SELECT_CMD.matcher(query)).matches()) {
+            result = select(m.group(1));
+        } else {
+            result = "ERROR: Malformed query.\n";
         }
-
-
-
-//        if ((m = CREATE_CMD.matcher(query)).matches()) {
-//            result = createTable(m.group(1));
-//        } else if ((m = LOAD_CMD.matcher(query)).matches()) {
-//            result = loadTable(m.group(1));
-//        } else if ((m = STORE_CMD.matcher(query)).matches()) {
-//            result = storeTable(m.group(1));
-//        } else if ((m = DROP_CMD.matcher(query)).matches()) {
-//            result = dropTable(m.group(1));
-//        } else if ((m = INSERT_CMD.matcher(query)).matches()) {
-//            result = insertRow(m.group(1));
-//        } else if ((m = PRINT_CMD.matcher(query)).matches()) {
-//            result = printTable(m.group(1));
-//        } else if ((m = SELECT_CMD.matcher(query)).matches()) {
-//            result = select(m.group(1));
-//        } else {
-//            result = "ERROR: Malformed query.\n";
-//        }
         return result;
     }
 
@@ -112,7 +97,7 @@ public class Database {
             return createSelectedTable(m.group(1), m.group(2), m.group(3),
                     m.group(4));
         } else {
-            return "ERROR: Malformed create command.";
+            return "ERROR: Malformed create command.\n";
         }
     }
 
@@ -130,10 +115,10 @@ public class Database {
                 tables.add(table);
                 return "";
             } else {
-                return "ERROR: incorrect format!";
+                return "ERROR: incorrect format!\n";
             }
         }
-        return "ERROR: table " + name + " already exists!";
+        return "ERROR: table " + name + " already exists!\n";
     }
 
     private static String createSelectedTable(String name, String exprs, String
@@ -177,13 +162,14 @@ public class Database {
 
             /* Check if the table is valid. */
             if (!table.isValid()) {
-                return "ERROR: Attempting to load incorrectly formatted table!";
+                return "ERROR: Attempting to load incorrectly formatted " +
+                        "table!\n";
             }
 
             /* Process all other lines. */
             String row[];
             while ((line = reader.readLine()) != null) {
-                row = lineToRow(line, table.getNumColumns());
+                row = lineToArr(line);
                 table.addRow(row);
             }
 
@@ -205,19 +191,19 @@ public class Database {
     private static String storeTable(String name) {
         Table table = findTable(name);
         if (table == null) {
-            return "ERROR: No such table: " + name;
+            return "ERROR: No such table: " + name + "\n";
         }
 
         /* Create and write to .tbl file. */
         try {
             String filename = name + ".tbl";
             BufferedWriter bw = new BufferedWriter(new FileWriter(filename));
-            bw.write(table.getTableString());
+            bw.write(table.toString());
             bw.close();
 
         } catch (IOException e) {
             e.printStackTrace();
-            return "ERROR: IOException caught.";
+            return "ERROR: IOException caught.\n";
         }
 
         return "";
@@ -229,7 +215,7 @@ public class Database {
             tables.remove(table);
             return "";
         } else {
-            return "ERROR: No such table: " + name;
+            return "ERROR: No such table: " + name + "\n";
         }
     }
 
@@ -244,12 +230,13 @@ public class Database {
 
         Table table = findTable(name);
         if (table != null) {
-            boolean ret = table.addRow(lineToRow(line, table.getNumColumns()));
+            boolean ret = table.addRow(lineToArr(line));
             if (ret == false) {
-                return "ERROR: Values do not match corresponding column types!";
+                return "ERROR: Values do not match corresponding column " +
+                        "types!\n";
             }
         } else {
-            return "ERROR: No such table: " + name;
+            return "ERROR: No such table: " + name + "\n";
         }
         return "";
     }
@@ -260,44 +247,125 @@ public class Database {
             table.printTable();
             return "";
         } else {
-            return "ERROR: No such table: " + name;
+            return "ERROR: No such table: " + name + "\n";
         }
     }
 
-    /** Processes a line and converts it to a row. Returns the row array. */
-    private static String[] lineToRow(String line, int numColumns) {
-        String[] row = new String[numColumns];
+    /** Processes a comma-separated line and converts it to an array. */
+    private static String[] lineToArr(String line) {
+        ArrayList<String> list = new ArrayList<>();
         int lineLength = line.length();
         String value = "";
-        int index = 0;
 
         for (int i = 0; i < lineLength; i++) {
             char c = line.charAt(i);
-                    /* Upon finding comma, add the value to row. */
+            /* Upon finding comma, add the value to the list. */
             if (c == ',') {
-                row[index] = value;
-                index++;
+                list.add(value);
                 value = "";
                 continue;
             }
             value += c;
         }
-        row[index] = value;    // add last value
-        return row;
+        list.add(value);    // add the last value
+        String[] arr = list.toArray(new String[0]);
+        return arr;
     }
 
-//    private static void select(String expr) {
-//        Matcher m = SELECT_CLS.matcher(expr);
-//        if (!m.matches()) {
-//            System.err.printf("Malformed select: %s\n", expr);
-//            return;
-//        }
-//
-//        select(m.group(1), m.group(2), m.group(3));
-//    }
-//
-//    private static void select(String exprs, String tables, String conds) {
-//        System.out.printf("You are trying to select these expressions:" +
-//                " '%s' from the join of these tables: '%s', filtered by these conditions: '%s'\n", exprs, tables, conds);
-//    }
+    /**
+     * Evaluates and applies column expressions to a table to choose which
+     * columns to return.
+     *
+     * @param table the table to apply the expressions to
+     * @param exprs the column expressions
+     */
+    private static Table evalExprs(Table table, String[] exprs) {
+        /* If the expression is "*", return all columns. */
+        if (exprs.length == 1 && exprs[0].equals("*")) {
+            return table;
+        }
+
+
+        /* For each expression... */
+        for (int i = 0; i < exprs.length; i++) {
+            String expr = exprs[i];
+
+            /* Check how many operands there are: 1 or 2. There are 2 operands
+               i.f.f. there are 4 spaces in the expression (ex: "a + b as sum").
+               Any other number of spaces is an error. */
+            int numSpaces = 0;
+            for (int j = 0; j < expr.length(); j++) {
+                if (expr.charAt(j) == ' ') {
+                    numSpaces++;
+                }
+            }
+            if (numSpaces == 0) {           // one operand
+
+            } else if (numSpaces == 4) {    // two operands
+
+            } else {                        // error
+                return null;
+            }
+
+        }
+        return null;
+    }
+
+    /**
+     * Evaluates and applies conditions to a table to choose which rows to
+     * return.
+     */
+    private static Table evalConds(Table table, String[] conds) {
+        return null;
+    }
+
+    private static String select(String expr) {
+        Matcher m = SELECT_CLS.matcher(expr);
+        if (!m.matches()) {
+            return "Malformed select: " + expr;
+        }
+
+        return select(m.group(1), m.group(2), m.group(3));
+    }
+
+    private static String select(String exprs, String tables, String conds) {
+        /* Split up the lines into processable arrays. */
+        String[] columnExprs = null, names = null, conditions = null;
+        if (exprs != null) {
+            columnExprs = lineToArr(exprs);
+        }
+        if (tables != null) {
+            names = lineToArr(tables);
+        }
+        if (conds != null) {
+            conditions = conds.split(AND);
+        }
+
+        /* Verify that each table exists in the database. */
+        Table[] arr = new Table[names.length];
+        for (int i = 0; i < names.length; i++) {
+            Table table = findTable(names[i]);
+            if (table != null) {
+                arr[i] = table;
+            } else {
+                return "ERROR: No such table: " + names[i] + "\n";
+            }
+        }
+
+        /* Join the tables. */
+        Table joinedTable = Table.join(arr);
+        Table expressedTable = null, conditionedTable = null;
+        if (columnExprs != null) {
+            expressedTable = evalExprs(joinedTable, columnExprs);
+        }
+        if (conditions != null) {
+            conditionedTable = evalConds(expressedTable, conditions);
+        }
+
+
+        return joinedTable.toString();
+//        return "You are trying to select these expressions: \'" + exprs +
+//                "\' from the join of these tables: \'" + tables + "\', " +
+//                "filtered by these conditions: '" + conds + "\'\n";
+    }
 }
