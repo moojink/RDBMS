@@ -15,8 +15,9 @@ public class Table {
     private int numRows;    // excluding row 0 (column names)
     private String name;    // name of the table: <name>.tbl
     private final int numColumns;
-    private boolean isValid = true;  // set to false if format is incorrect
+    private boolean isValid = true;     // set to false if format is incorrect
     private String[] columnNames;
+    private String[] rawColumnNames;    // column names without types
     private final String[] validTypes = new String[]{"string", "int", "float"};
     private String[] columnTypes;
     private LinkedHashMap<Integer, LinkedHashMap<String, String>> table;
@@ -36,6 +37,7 @@ public class Table {
         this.columnNames = new String[this.numColumns];
         System.arraycopy(columnNames, 0, this.columnNames, 0,
                 this.numColumns);
+        this.rawColumnNames = toRaw(this.columnNames);
         this.table = new LinkedHashMap<>();
     }
 
@@ -54,6 +56,11 @@ public class Table {
      */
     public boolean addRow(String[] values) {
         if (values == null) {
+            return false;
+        }
+
+        /* Verify that the number of values matches the number of columns. */
+        if (values.length != numColumns) {
             return false;
         }
 
@@ -279,6 +286,11 @@ public class Table {
     /** Get column names. */
     public String[] getColumnNames() {
         return columnNames;
+    }
+
+    /** Get raw column names. */
+    public String[] getRawColumnNames() {
+        return rawColumnNames;
     }
 
     /** Prints the column names in the Table. */
@@ -589,7 +601,54 @@ public class Table {
         return true;
     }
 
-    public static void main(String[] args) {
+    /**
+     * Returns the "raw" column names, aka column names without the type.
+     * Example: LastName string --> LastName
+     * This will be useful for database transactions that use 'select'.
+     */
+    private String[] toRaw(String[] columnNames) {
+        String[] rawColumnNames = new String[numColumns];
 
+        /* For each column name... */
+        for (int i = 0; i < columnNames.length; i++) {
+            String name = columnNames[i];
+            /* Store the substring before the space character. */
+            String substring = name.substring(0, name.indexOf(" "));
+            rawColumnNames[i] = substring;
+        }
+        return rawColumnNames;
+    }
+
+    /** Checks if a raw column name exists, and if so, returns the non-raw
+     * version (aka the column name + ' ' + type):
+     * Example: LastName --> LastName string
+     *
+     * @return  name    if column name exists in table
+     *          null    otherwise
+     */
+    public String addType(String rawColumnName) {
+        for (int i = 0; i < rawColumnNames.length; i++) {
+            if (rawColumnNames[i].equals(rawColumnName)) {
+                return columnNames[i];
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Get the type of the column given column name.
+     *
+     * @return  "string"    if string
+     *          "int"       if int
+     *          "float"     if float
+     *          null        if column doesn't exist in table
+     */
+    public String getType(String columnName) {
+        for (int i = 0; i < columnNames.length; i++) {
+            if (columnNames[i].equals(columnName)) {
+                return columnTypes[i];
+            }
+        }
+        return null;
     }
 }
