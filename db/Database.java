@@ -54,10 +54,13 @@ public class Database {
     public String transact(String query) {
         return eval(query);
     }
+
     /** Evaluates the query: calls appropriate function and returns result. */
-    public static String eval(String query) {
+    public static String eval(String unformattedQuery) {
         String result = "";
         Matcher m;
+
+        String query = formatQuery(unformattedQuery);
 
         if ((m = CREATE_CMD.matcher(query)).matches()) {
             result = createTable(m.group(1));
@@ -77,6 +80,37 @@ public class Database {
             result = "ERROR: Malformed query.\n";
         }
         return result;
+    }
+
+    /** Formats a query to remove excess whitespaces and returns the result. */
+    private static String formatQuery(String unformattedQuery) {
+        /*
+         * Each command may have arbitrary amounts of whitespace in between
+         * keywords. To make life easier for the rest of these functions (which
+         * assume that the format strictly matches the formats given in the
+         * spec), format the query before passing it to all the database
+         * functions.
+         *
+         * Formatting algorithm:
+         *      PART 1:
+         *          Convert all series of spaces into 1 space, while removing
+         *          leading and trailing spaces.
+         *      PART 2:
+         *          There should be NO spaces between a keyword and a comma, on
+         *          both sides of the comma. So, remove spaces that immediately
+         *          precede or follow a comma.
+         */
+
+        String ret = "";
+
+        /* PART 1 */
+        ret = unformattedQuery.trim().replaceAll(" +", " "); // from StckOvflw
+
+        /* Part 2 */
+        ret = ret.trim().replaceAll(", ", ",");
+        ret = ret.trim().replaceAll(" ,", ",");
+
+        return ret;
     }
 
     /** Finds and returns a table with the corresponding name, or null. */

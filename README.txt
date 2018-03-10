@@ -1,4 +1,4 @@
-[IN PROGRESS: Implementing Database 'select' feature]
+[IN PROGRESS: Working on special value NaN]
 
 -------------------------------------------------------------------------------
 
