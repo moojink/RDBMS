@@ -125,11 +125,65 @@ public class Database {
 
     /** Creates a table using 'select'. */
     private static String createSelectedTable(String name, String exprs, String
-            tables, String conds) {
-        return "You are trying to create a table named " + name +
-                " by selecting these " + "expressions: '" + exprs +
-                "' from the join of these tables: '" + tables +
-                "', filtered by these conditions: '" + conds + "'\n";
+            tableNames, String conds) {
+        /* Get string representation of table. */
+        String stringRep = select(exprs, tableNames, conds);
+
+        /* Separate the string representation of table line-by-line. */
+        ArrayList<String> lines = new ArrayList<>();
+        String line = "";
+        for (int i = 0; i < stringRep.length(); i++) {
+            char c = stringRep.charAt(i);
+            if (c == '\n') {
+                lines.add(line);
+                line = "";
+                continue;
+            }
+            line += c;
+        }
+
+        /* Process the first line in the string representation of table. */
+        line = lines.get(0);
+        ArrayList<String> list = new ArrayList<>();
+        String columnName = "";
+        int lineLength = line.length();
+        for (int i = 0; i < lineLength; i++) {
+            char c = line.charAt(i);
+            /* Upon finding comma, add the column name to list. */
+            if (c == ',') {
+                list.add(columnName);
+                columnName = "";
+                continue;
+            }
+            columnName += c;
+        }
+        list.add(columnName);    // add last column
+
+        /* Initialize the table. */
+        String[] columnNames = list.toArray(new String[0]);
+        Table table = new Table(columnNames, name);
+
+        /* Check if the table is valid. */
+        if (!table.isValid()) {
+            return "ERROR: Attempting to create incorrectly formatted " +
+                    "table!\n";
+        }
+
+        /* Process all other lines. */
+        String row[];
+        for (int i = 1; i < lines.size(); i++) {
+            line = lines.get(i);
+            row = lineToArr(line);
+            table.addRow(row);
+        }
+
+        /* If a table exists with the same name, overwrite it. */
+        Table temp = findTable(name);
+        if (temp != null) {
+            tables.remove(temp);
+        }
+        tables.add(table);
+        return "";
     }
 
     /** Loads table from a .tbl file. */
@@ -229,7 +283,7 @@ public class Database {
     private static String insertRow(String expr) {
         Matcher m = INSERT_CLS.matcher(expr);
         if (!m.matches()) {
-            return "Malformed insert.";
+            return "Malformed insert.\n";
         }
 
         String name = m.group(1);
@@ -280,15 +334,101 @@ public class Database {
     }
 
     /**
-     * Checks whether the operation between two columns are valid by checking
-     * their types in the table.
+     * Gets the type of a literal: string, int, or float.
+     *
+     * @return  "string"    if matches string format
+     *          "int"       if matches int format
+     *          "float"     if matches float format
+     *          null        if matches no format
      */
-    private static boolean isValidOperation(Table table, String name1,
+    private static String getLitType(String literal) {
+        /* Three possible types:
+           string: begins and ends with single quote, no other quotes between.
+           int: all characters are digits, no decimal point.
+           float: all characters are digits, exactly 1 decimal point. */
+        boolean literalIsString = true, literalIsInt = true, literalIsFloat = true;
+
+        /* The literal must be at least one character long. */
+        if (literal.length() < 1) {
+            return null;
+        }
+
+        /* Check if the literal is a string. */
+        /* If the literal is a string, it must begin and end with a single
+           quote. */
+        char firstChar = literal.charAt(0);
+        char lastChar = literal.charAt(literal.length() - 1);
+        if (firstChar != '\'' || lastChar != '\'') {
+            literalIsString = false;
+        }
+        /* If the literal is a string, the value cannot contain newlines, tabs,
+           commas, or quotes between the single quotes. */
+        for (int j = 1; j < literal.length() - 1; j++) {
+            char c = literal.charAt(j);
+            if (c == '\n' || c == '\t' || c == ',' ||
+                    c == '\'' || c == '\"')
+            {
+                literalIsString = false;
+            }
+        }
+
+        /* If the literal is not a string, verify that it's an int or float. */
+        if (!literalIsString) {
+            /* If all the characters in the literal are digits (except the
+               first one, which could be a negative sign), then it's an int. */
+            if (!Character.isDigit(firstChar) && firstChar != '-') {
+                literalIsInt = false;
+            }
+            for (int i = 1; i < literal.length(); i++) {
+                if (!Character.isDigit(literal.charAt(i))) {
+                    literalIsInt = false;
+                }
+            }
+
+            /* If the literal is a float, then its first character can either be
+               a decimal point, a negative sign, or a digit. Verify that the
+               literal only contains digits and exactly one decimal point. */
+            if (!Character.isDigit(firstChar) && firstChar != '-' &&
+                    firstChar != '.') {
+                literalIsFloat = false;
+            }
+            int decimalPointCount = 0;
+            for (int j = 1; j < literal.length(); j++) {
+                char c = literal.charAt(j);
+                if (!Character.isDigit(c) && c != '.') {
+                    literalIsFloat = false;
+                }
+                if (c == '.') {
+                    decimalPointCount++;
+                }
+            }
+            if (decimalPointCount != 1) {
+                literalIsFloat = false;
+            }
+        }
+
+        if (literalIsString) {
+            return "string";
+        }
+        if (literalIsInt) {
+            return "int";
+        }
+        if (literalIsFloat)
+            return "float";
+
+        return null;
+    }
+
+    /**
+     * "Is valid column operation": Checks whether the operation between two
+     * columns is valid by checking their types in the table.
+     */
+    private static boolean isValidColOperation(Table table, String name1,
                                             String operator, String name2)
     {
         /* Get the column types. */
-        String type1 = table.getType(name1);
-        String type2 = table.getType(name2);
+        String type1 = table.getColType(name1);
+        String type2 = table.getColType(name2);
 
         /* If one operand is a string, the other one MUST also be a string. */
         if (type1.equals("string") && !type2.equals("string")) {
@@ -308,7 +448,91 @@ public class Database {
         return true;
     }
 
-    /** Helper function for applyOperation(). */
+    /**
+     * "Is valid literal operation": Checks whether the operation between one
+     * column and a literal is valid by checking their types. Also checks
+     * if the literal is valid by seeing if it is a string, int, or float.
+     */
+    private static boolean isValidLitOperation(Table table, String name,
+                                               String operator, String literal)
+    {
+
+        /* Get the column type of the column (argument 'name'). */
+        String type1 = table.getColType(name);
+
+        /* Get the type of the literal. */
+        String type2 = getLitType(literal);
+
+        /* If the literal is not a string, int, or float, then return false. */
+        if (type2 == null) {
+            return false;
+        }
+
+        /* If the column type is string, the literal MUST be a string. */
+        if (type1.equals("string") && !type2.equals("string")) {
+            return false;
+        }
+        if (!type1.equals("string") && type2.equals("string")) {
+            return false;
+        }
+
+        /* If both types are string, the only valid operator is "+". */
+        if (type1.equals("string") && type2.equals("string")) {
+            if (!operator.equals("+")) {
+                return false;
+            }
+        }
+
+        /* The only valid operators are +, -, *, and /. */
+        if (!operator.equals("+") && !operator.equals("-") &&
+            !operator.equals("*") && !operator.equals("/"))
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * "Is valid literal comparison": Checks whether the comparison between one
+     * column and a literal is valid by checking their types. Also checks
+     * if the literal is valid by seeing if it is a string, int, or float.
+     */
+    private static boolean isValidLitComparison(Table table, String name,
+                                               String operator, String literal)
+    {
+
+        /* Get the column type of the column (argument 'name'). */
+        String type1 = table.getColType(name);
+
+        /* Get the type of the literal. */
+        String type2 = getLitType(literal);
+
+        /* If the literal is not a string, int, or float, then return false. */
+        if (type2 == null) {
+            return false;
+        }
+
+        /* If the column type is string, the literal MUST be a string. */
+        if (type1.equals("string") && !type2.equals("string")) {
+            return false;
+        }
+        if (!type1.equals("string") && type2.equals("string")) {
+            return false;
+        }
+
+        /* The only valid operators are ==, !=, <, >, <=, and >=. */
+        if (!operator.equals("==") && !operator.equals("!=") &&
+            !operator.equals("<") && !operator.equals(">") &&
+            !operator.equals("<=") && !operator.equals(">="))
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    /** Helper function for applyColOperation() and applyLitOperation(). */
     private static float doMath(float operand1, String operator,
                                 float operand2)
     {
@@ -325,13 +549,119 @@ public class Database {
         }
     }
 
+    /** Helper function for passesColCondition() and passesLitCondition(). */
+    private static boolean doStringComparison(String operand1, String operator,
+                                        String operand2)
+    {
+        if (operator.equals("==")) {
+            if (operand1.equals(operand2)) {
+                return true;
+            } else {
+                return false;
+            }
+        } else if (operator.equals("!=")) {
+            if (!operand1.equals(operand2)) {
+                return true;
+            } else {
+                return false;
+            }
+        } else if (operator.equals("<")) {
+            /* compareTo() should return negative int */
+            if (operand1.compareTo(operand2) < 0) {
+                return true;
+            } else {
+                return false;
+            }
+        } else if (operator.equals(">")) {
+            /* compareTo() should return positive int */
+            if (operand1.compareTo(operand2) > 0) {
+                return true;
+            } else {
+                return false;
+            }
+        } else if (operator.equals("<=")) {
+            /* compareTo() should return negative int or 0 */
+            int ret = operand1.compareTo(operand2);
+            if (ret < 0 || ret == 0) {
+                return true;
+            } else {
+                return false;
+            }
+        } else if (operator.equals(">=")) {
+            /* compareTo() should return positive int or 0 */
+            int ret = operand1.compareTo(operand2);
+            if (ret > 0 || ret == 0) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+        System.out.println("This line should never print (doStringComparison)");
+        return false;
+    }
+
+    /** Helper function for passesColCondition() and passesLitCondition(). */
+    private static boolean doNumComparison(String value1, String operator,
+                                              String value2)
+    {
+        Float operand1 = Float.parseFloat(value1);
+        Float operand2 = Float.parseFloat(value2);
+        if (operator.equals("==")) {
+            if (operand1.equals(operand2)) {
+                return true;
+            } else {
+                return false;
+            }
+        } else if (operator.equals("!=")) {
+            if (!operand1.equals(operand2)) {
+                return true;
+            } else {
+                return false;
+            }
+        } else if (operator.equals("<")) {
+            /* compareTo() should return negative int */
+            if (operand1.compareTo(operand2) < 0) {
+                return true;
+            } else {
+                return false;
+            }
+        } else if (operator.equals(">")) {
+            /* compareTo() should return positive int */
+            if (operand1.compareTo(operand2) > 0) {
+                return true;
+            } else {
+                return false;
+            }
+        } else if (operator.equals("<=")) {
+            /* compareTo() should return negative int or 0 */
+            int ret = operand1.compareTo(operand2);
+            if (ret < 0 || ret == 0) {
+                return true;
+            } else {
+                return false;
+            }
+        } else if (operator.equals(">=")) {
+            /* compareTo() should return positive int or 0 */
+            int ret = operand1.compareTo(operand2);
+            if (ret > 0 || ret == 0) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+        System.out.println("This line should never print (doNumComparison)");
+        return false;
+    }
+
     /** Applies the operation to two arrays (columns) and returns the result. */
-    private static String[] applyOperation(Table table, String name1,
+    private static String[] applyColOperation(Table table, String name1,
                                     String operator, String name2)
     {
         /* Get the column types. */
-        String type1 = table.getType(name1);
-        String type2 = table.getType(name2);
+        String type1 = table.getColType(name1);
+        String type2 = table.getColType(name2);
 
         /* Get the column values. */
         String[] values1 = table.getCol(name1);
@@ -391,6 +721,123 @@ public class Database {
         return ret;
     }
 
+    /** Applies the operation to column w/ a literal and returns the result. */
+    private static String[] applyLitOperation(Table table, String name1,
+                                              String operator, String literal)
+    {
+        /* Get the column type and the literal type. */
+        String type1 = table.getColType(name1);
+        String type2 = getLitType(literal);
+
+        /* Get the column values. */
+        String[] values1 = table.getCol(name1);
+        int numValues = values1.length;
+
+        String[] ret = new String[numValues];
+
+        /* If both types are string, the operation is "+". */
+        if (type1.equals("string") && type2.equals("string")) {
+            /* Concatenate all values with the literal. */
+            for (int i = 0; i < numValues; i++) {
+                String result = "";
+                result += '\'';
+                String value1 = values1[i];
+                for (int j = 0; j < value1.length(); j++) {
+                    char c = value1.charAt(j);
+                    if (c != '\'') {    // don't add extra single quotes
+                        result += c;
+                    }
+                }
+
+                for (int j = 0; j < literal.length(); j++) {
+                    char c = literal.charAt(j);
+                    if (c != '\'') {
+                        result += c;    // don't add extra single quotes
+                    }
+                }
+                result += '\'';
+                ret[i] = result;
+            }
+            return ret;
+        }
+
+
+        /* If we reached this point, the types are ints/floats in any
+           combination. Apply the arithmetic. Possible ops: { +,-, *, / } */
+        float operand1, operand2, result;
+        int result_int;
+        for (int i = 0; i < numValues; i++) {
+            /* Get the values in the correct types. */
+            operand1 = Float.parseFloat(values1[i]);
+            operand2 = Float.parseFloat(literal);
+
+            /* Do the operation. */
+            result = doMath(operand1, operator, operand2);
+
+            /* Cast the result to the right type. */
+            if (type1.equals("int") && type2.equals("int")) {
+                result_int = (int) result;
+                ret[i] = Integer.toString(result_int);
+            } else {
+                ret[i] = String.format("%.3f", result);
+            }
+        }
+        return ret;
+    }
+
+    /**
+     * Tests whether a particular row in a table passes a condition when given
+     * a column name and a literal.
+     *
+     * @return  true    if the row passes the condition
+     *          false   otherwise
+     */
+    private static boolean passesLitCondition(Table table, String name1,
+                                              String operator, String literal,
+                                              int rowNum)
+    {
+        /* Get the column type and the literal type. */
+        String type1 = table.getColType(name1);
+        String type2 = getLitType(literal);
+
+        /* Get the value in the column and row specified by name1 and rowNum. */
+        String value = table.getVal(rowNum, name1);
+
+        /* Return the result of condition test. */
+        if (type1.equals("string") || type2.equals("string")) {
+            return doStringComparison(value, operator, literal);
+        } else {
+            return doNumComparison(value, operator, literal);
+        }
+    }
+
+    /**
+     * Tests whether a particular row in a table passes a condition when given
+     * two column names.
+     *
+     * @return  true    if the row passes the condition
+     *          false   otherwise
+     */
+    private static boolean passesColCondition(Table table, String name1,
+                                              String operator, String name2,
+                                              int rowNum)
+    {
+        /* Get the column type and the literal type. */
+        String type1 = table.getColType(name1);
+        String type2 = table.getColType(name2);
+
+        /* Get values in the columns and rows specified by name1 and rowNum. */
+        String value1 = table.getVal(rowNum, name1);
+        String value2 = table.getVal(rowNum, name2);
+
+        /* Return the result of condition test. */
+        if (type1.equals("string") || type2.equals("string")) {
+            return doStringComparison(value1, operator, value2);
+        } else {
+            return doNumComparison(value1, operator, value2);
+        }
+    }
+
     /** Gets the resulting type after an operation. */
     private static String getResultingType(String type1, String type2) {
         if (type1.equals("string") || type2.equals("string")) {
@@ -412,6 +859,7 @@ public class Database {
     private static Table evalExprs(Table table, String[] exprs) {
         int numColumns = exprs.length;
         int numRows = table.getNumRows();
+
 
         /* If the expression is "*", return all columns. */
         if (exprs.length == 1 && exprs[0].equals("*")) {
@@ -438,12 +886,21 @@ public class Database {
                Any other number of spaces is an error. */
 
             String operand1 = null, operator = null, operand2 = null;
+            boolean operand2IsLiteral = false;
             String newColumnName = null;
             String substring = "";
             int numSpaces = 0;
+            boolean countSpaces = true;
             for (int j = 0; j < expr.length(); j++) {
                 char c = expr.charAt(j);
-                if (c == ' ') {
+                /* It's possible that we encounter a literal like this ' Pie'.
+                   In this case, the space character before the "Pie" should not
+                   be counted. We do this by ignoring spaces until the closing
+                   single quote. */
+                if (c == '\'') {
+                    countSpaces = !countSpaces;
+                }
+                if (c == ' ' && countSpaces) {
                     numSpaces++;
                     if (numSpaces == 1) {
                         operand1 = substring;
@@ -475,25 +932,45 @@ public class Database {
                 if (!expr.contains("as")) {
                     return null;
                 }
-                /* Verify that the column names exist in table. */
+                /* Verify that the first (left) column name exists in table. */
                 String name1 = table.addType(operand1);
                 String name2 = table.addType(operand2);
-                if (name1 == null || name2 == null) {
+                if (name1 == null) {
                     return null;
                 }
-
-                /* Verify that this is a valid operation. */
-                if (!isValidOperation(table, name1, operator, name2)) {
-                    return null;
+                /* If the second column name does not exist in table, it is a
+                   literal. */
+                if (name2 == null) {
+                    operand2IsLiteral = true;
                 }
 
-                /* Apply the operation and form the correct column values. */
-                String[] values = applyOperation(table, name1, operator, name2);
+                /* Apply the operation. */
+                String[] values = null;
+                if (operand2IsLiteral) {
+                    /* Verify that the operation with a literal is valid. */
+                    if (!isValidLitOperation(table, name1, operator, operand2)) {
+                        return null;
+                    }
+                    values = applyLitOperation(table, name1, operator,
+                                               operand2);
+                } else {
+                    /* Verify that the operation with two columns is valid. */
+                    if (!isValidColOperation(table, name1, operator, name2)) {
+                        return null;
+                    }
+                    values = applyColOperation(table, name1, operator, name2);
+                }
+
+                /* Form the correct column values. */
                 columnValues[i] = values;
 
                 /* Attach the correct type to the newly formed column. */
-                String type1 = table.getType(name1);
-                String type2 = table.getType(name2);
+                String type1 = table.getColType(name1), type2 = null;
+                if (!operand2IsLiteral) {
+                    type2 = table.getColType(name2);
+                } else {
+                    type2 = getLitType(operand2);
+                }
                 String resultingType = getResultingType(type1, type2);
                 newColumnName += " " + resultingType;
                 columnNames[i] = newColumnName;
@@ -543,9 +1020,17 @@ public class Database {
                    operand1, operator, operand2.
                    Example: "Lastname <= 'Lee'" */
                 int numSpaces = 0;
+                boolean countSpaces = true;
                 for (int j = 0; j < cond.length(); j++) {
                     char c = cond.charAt(j);
-                    if (c == ' ') {
+                    /* It's possible that we encounter a literal like this ' Pie'.
+                   In this case, the space character before the "Pie" should not
+                   be counted. We do this by ignoring spaces until the closing
+                   single quote. */
+                    if (c == '\'') {
+                        countSpaces = !countSpaces;
+                    }
+                    if (c == ' ' && countSpaces) {
                         numSpaces++;
                         if (numSpaces == 1) {
                             operand1 = substring;
@@ -564,14 +1049,52 @@ public class Database {
                     return null;
                 }
 
-                /* Find the column(s) that this condition applies to. */
+                /* Verify that operand1 is an existing column name in table. */
+                String name1 = table.addType(operand1);
+                String name2 = table.addType(operand2);
+                boolean operand2IsLiteral = false;
+                if (name1 == null) {
+                    return null;
+                }
 
+                /* If name2 is null, then operand2 is a literal. Else it is a
+                   column name. */
+                if (name2 == null) {
+                    operand2IsLiteral = true;
+                }
+
+                /* Apply the condition. If the row fails any condition, do not
+                   add it to the new table. */
+                int rowNum = i;
+                if (operand2IsLiteral) {
+                    if (!isValidLitComparison(table, name1, operator,
+                                              operand2))
+                    {
+                        return null;
+                    }
+                    if (!passesLitCondition(table, name1, operator, operand2,
+                                           rowNum))
+                    {
+                        shouldAdd = false;
+                        break;
+                    }
+                } else {
+                    if (!isValidLitComparison(table, name1, operator, name2)) {
+                        return null;
+                    }
+                    if (!passesColCondition(table, name1, operator, name2,
+                                            rowNum))
+                    {
+                        shouldAdd = false;
+                        break;
+                    }
+                }
             }
+            /* If the row passes all the conditions, add it to the new table. */
             if (shouldAdd) {
                 ret.addRow(row);
             }
         }
-
 
         return ret;
     }

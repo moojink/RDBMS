@@ -72,6 +72,7 @@ public class Table {
             if (value.equals("NOVALUE")) {
                 continue;
             }
+
             /* Get the corresponding column type. */
             String type = columnTypes[i];
 
@@ -643,7 +644,7 @@ public class Table {
      *          "float"     if float
      *          null        if column doesn't exist in table
      */
-    public String getType(String columnName) {
+    public String getColType(String columnName) {
         for (int i = 0; i < columnNames.length; i++) {
             if (columnNames[i].equals(columnName)) {
                 return columnTypes[i];
