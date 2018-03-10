@@ -68,8 +68,8 @@ public class Table {
         for (int i = 0; i < values.length; i++) {
             String value = values[i];
 
-            /* Accept NOVALUE inputs. */
-            if (value.equals("NOVALUE")) {
+            /* Accept NOVALUE and NaN inputs. */
+            if (value.equals("NOVALUE") || value.equals("NaN")) {
                 continue;
             }
 

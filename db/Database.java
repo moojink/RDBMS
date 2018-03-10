@@ -151,7 +151,7 @@ public class Database {
                 tables.add(table);
                 return "";
             } else {
-                return "ERROR: incorrect format!\n";
+                return "ERROR: incorrect table format!\n";
             }
         }
         return "ERROR: table " + name + " already exists!\n";
@@ -317,7 +317,7 @@ public class Database {
     private static String insertRow(String expr) {
         Matcher m = INSERT_CLS.matcher(expr);
         if (!m.matches()) {
-            return "Malformed insert.\n";
+            return "ERROR: Malformed insert.\n";
         }
 
         String name = m.group(1);
@@ -639,49 +639,95 @@ public class Database {
     private static boolean doNumComparison(String value1, String operator,
                                               String value2)
     {
-        Float operand1 = Float.parseFloat(value1);
-        Float operand2 = Float.parseFloat(value2);
-        if (operator.equals("==")) {
-            if (operand1.equals(operand2)) {
+        /* NaN > all values except itself, to which it is equal. */
+
+        if (value1.equals("NaN") && !value2.equals("NaN")) {
+            if (operator.equals("==")) {
+                return false;
+            } else if (operator.equals("!=")) {
                 return true;
-            } else {
+            } else if (operator.equals("<")) {
+                return false;
+            } else if (operator.equals(">")) {
+                return true;
+            } else if (operator.equals("<=")) {
+                return false;
+            } else if (operator.equals(">=")) {
+                return true;
+            }
+        } else if (!value1.equals("NaN") && value2.equals("NaN")) {
+            if (operator.equals("==")) {
+                return false;
+            } else if (operator.equals("!=")) {
+                return true;
+            } else if (operator.equals("<")) {
+                return true;
+            } else if (operator.equals(">")) {
+                return false;
+            } else if (operator.equals("<=")) {
+                return true;
+            } else if (operator.equals(">=")) {
                 return false;
             }
-        } else if (operator.equals("!=")) {
-            if (!operand1.equals(operand2)) {
+        } else if (value1.equals("NaN") && value2.equals("NaN")) {
+            if (operator.equals("==")) {
                 return true;
-            } else {
+            } else if (operator.equals("!=")) {
                 return false;
+            } else if (operator.equals("<")) {
+                return false;
+            } else if (operator.equals(">")) {
+                return false;
+            } else if (operator.equals("<=")) {
+                return true;
+            } else if (operator.equals(">=")) {
+                return true;
             }
-        } else if (operator.equals("<")) {
+        } else {
+            Float operand1 = Float.parseFloat(value1);
+            Float operand2 = Float.parseFloat(value2);
+            if (operator.equals("==")) {
+                if (operand1.equals(operand2)) {
+                    return true;
+                } else {
+                    return false;
+                }
+            } else if (operator.equals("!=")) {
+                if (!operand1.equals(operand2)) {
+                    return true;
+                } else {
+                    return false;
+                }
+            } else if (operator.equals("<")) {
             /* compareTo() should return negative int */
-            if (operand1.compareTo(operand2) < 0) {
-                return true;
-            } else {
-                return false;
-            }
-        } else if (operator.equals(">")) {
+                if (operand1.compareTo(operand2) < 0) {
+                    return true;
+                } else {
+                    return false;
+                }
+            } else if (operator.equals(">")) {
             /* compareTo() should return positive int */
-            if (operand1.compareTo(operand2) > 0) {
-                return true;
-            } else {
-                return false;
-            }
-        } else if (operator.equals("<=")) {
+                if (operand1.compareTo(operand2) > 0) {
+                    return true;
+                } else {
+                    return false;
+                }
+            } else if (operator.equals("<=")) {
             /* compareTo() should return negative int or 0 */
-            int ret = operand1.compareTo(operand2);
-            if (ret < 0 || ret == 0) {
-                return true;
-            } else {
-                return false;
-            }
-        } else if (operator.equals(">=")) {
+                int ret = operand1.compareTo(operand2);
+                if (ret < 0 || ret == 0) {
+                    return true;
+                } else {
+                    return false;
+                }
+            } else if (operator.equals(">=")) {
             /* compareTo() should return positive int or 0 */
-            int ret = operand1.compareTo(operand2);
-            if (ret > 0 || ret == 0) {
-                return true;
-            } else {
-                return false;
+                int ret = operand1.compareTo(operand2);
+                if (ret > 0 || ret == 0) {
+                    return true;
+                } else {
+                    return false;
+                }
             }
         }
 
@@ -737,11 +783,21 @@ public class Database {
         float operand1, operand2, result;
         int result_int;
         for (int i = 0; i < numValues; i++) {
+            /* Any arithmetic operation with a NaN returns a NaN. */
+            if (values1[i].equals("NaN") || values2[i].equals("NaN")) {
+                ret[i] = "NaN";
+                continue;
+            }
+
             /* Get the values in the correct types. */
             operand1 = Float.parseFloat(values1[i]);
             operand2 = Float.parseFloat(values2[i]);
 
-            /* Do the operation. */
+            /* Do the operation. If dividing by 0, result is NaN. */
+            if (operator.equals("/") && Float.compare(operand2, 0) == 0) {
+                ret[i] = "NaN";
+                continue;
+            }
             result = doMath(operand1, operator, operand2);
 
             /* Cast the result to the right type. */
@@ -805,7 +861,11 @@ public class Database {
             operand1 = Float.parseFloat(values1[i]);
             operand2 = Float.parseFloat(literal);
 
-            /* Do the operation. */
+            /* Do the operation. If dividing by 0, result is NaN. */
+            if (operator.equals("/") && Float.compare(operand2, 0) == 0) {
+                ret[i] = "NaN";
+                continue;
+            }
             result = doMath(operand1, operator, operand2);
 
             /* Cast the result to the right type. */

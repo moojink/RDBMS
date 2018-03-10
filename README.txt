@@ -1,7 +1,3 @@
-[IN PROGRESS: Working on special value NaN]
-
--------------------------------------------------------------------------------
-
 Project Overview:
     This is Project 2 from UC Berkeley's CS 61B (Spring 2017 by Professor Josh
     Hug), a massive capstone project in which you use Java to implement a
@@ -30,15 +26,20 @@ I learned how to:
                 This one has a subtle difference from the final design, but
                 its use is too complicated to explain and eventually becomes a
                 nasty problem in the join() function.
-    2.) Set a standard table format (.tbl) and parse through it to add data to
-        a database.
-    3.) Implement a database and the corresponding management features.
+    2.) Set a standard table format (.tbl) and extract data from .tbl files
+        to load tables into the database.
+    3.) Implement a database and relational management features, such as the
+        merging of two tables and the evaluation of column expressions and
+        conditions to extract the desired columns and rows.
     4.) Parse through and put into effect commands that the user inputs to
         interact with the database.
-    5.) ...
+    5.) Juggle this project with the work required for my Operating Systems
+        and Computer Architecture classes in Winter 2018.
 
 -------------------------------------------------------------------------------
 
 Notes to self:
-    1. Stop using == to compare Strings. You must use String.equals().
+    1. Stop using == to compare Strings. Use String.equals().
+    2. Float comparisons using operators like ==, !=, etc. are incorrect.
+       Use Float.compareTo().
 
