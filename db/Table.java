@@ -58,21 +58,17 @@ public class Table {
         if (values == null) {
             return false;
         }
-
         /* Verify that the number of values matches the number of columns. */
         if (values.length != numColumns) {
             return false;
         }
-
         /* For each value... */
         for (int i = 0; i < values.length; i++) {
             String value = values[i];
-
             /* Accept NOVALUE and NaN inputs. */
             if (value.equals("NOVALUE") || value.equals("NaN")) {
                 continue;
             }
-
             /* Get the corresponding column type. */
             String type = columnTypes[i];
 
@@ -83,14 +79,11 @@ public class Table {
                 if (firstChar != '\'' || lastChar != '\'') {
                     return false;
                 }
-
                 /* Verify that the value does not contain newlines, tabs,
                    commas, or quotes between the single quotes. */
                 for (int j = 1; j < value.length() - 1; j++) {
                     char c = value.charAt(j);
-                    if (c == '\n' || c == '\t' || c == ',' ||
-                        c == '\'' || c == '\"')
-                    {
+                    if (c == '\n' || c == '\t' || c == ',' || c == '\'' || c == '\"') {
                         return false;
                     }
                 }
@@ -116,6 +109,9 @@ public class Table {
                     return false;
                 }
                 int decimalPointCount = 0;
+                if (c == '.') {
+                    decimalPointCount++;    // allows '.' to be first char
+                }
                 for (int j = 1; j < value.length(); j++) {
                     c = value.charAt(j);
                     if (!Character.isDigit(c) && c != '.') {
@@ -128,11 +124,13 @@ public class Table {
                 if (decimalPointCount != 1) {
                     return false;
                 }
+
+                /* Format to 3 decimal points. */
+                values[i] = formatFloat(value);
             } else {
                 return false;
             }
         }
-
         numRows++;
         table.put(numRows, new LinkedHashMap<>());
 
@@ -140,6 +138,50 @@ public class Table {
             table.get(numRows).put(columnNames[i], values[i]);
         }
         return true;
+    }
+
+    /** Formats a float string to 3 decimal points and removes leading 0's. */
+    private String formatFloat(String value) {
+        int indexOfDecimal = value.indexOf('.');
+        if (indexOfDecimal == -1) {
+            System.out.println("ERROR: formatFloat() found no '.'!");
+            return null;
+        }
+
+        /* Split the float string into 2 parts:
+        first part is all characters up to but EXcluding the '.'
+        second part is all characters after '.' */
+        String[] parts = value.split("\\.");
+        String firstPart = parts[0];
+        String secondPart;
+        if (parts.length == 2) {
+            secondPart = parts[1];
+        } else {
+            secondPart = "";
+        }
+
+        /* Remove leading 0's. Credits to StackOverflow:
+         * https://stackoverflow.com/questions/2800739/how-to-remove-leading-zeros-from-alphanumeric-text
+         */
+        firstPart = firstPart.replaceFirst("^0+(?!$)", "");
+
+        String ret = firstPart + '.';
+        String partToAdd = "";
+        for (int i = 0; i < secondPart.length(); i++) {
+            if (partToAdd.length() != 3) {
+                partToAdd += secondPart.charAt(i);
+            }
+        }
+
+        /* Append '0's if necessary */
+        for (int i = 0; i < 3; i++) {
+            if (partToAdd.length() != 3) {
+                partToAdd += '0';
+            }
+        }
+
+        ret += partToAdd;
+        return ret;
     }
 
     /** Gets the name of the table. */
@@ -196,8 +238,9 @@ public class Table {
      *          null    if not in bounds
      */
     public String getVal(int row, int col) {
-        if (row < 1 || col < 1 || row > numRows || col > numColumns)
+        if (row < 1 || col < 1 || row > numRows || col > numColumns) {
             return null;
+        }
 
         String[] rowElements = getRow(row);
         return rowElements[col - 1];
@@ -207,11 +250,12 @@ public class Table {
      * Gets the value in the table at the Nth row and corresponding to
      * the column name.
      */
-    public String getVal(int N, String name) {
-        if (N < 1 || N > numRows)
+    public String getVal(int N, String columnName) {
+        if (N < 1 || N > numRows) {
             return null;
+        }
 
-        String[] column = getCol(name);
+        String[] column = getCol(columnName);
         return column[N - 1];
     }
 
@@ -254,8 +298,9 @@ public class Table {
      * can get the 0th row (column names), this function cannot.
      */
     public String[] getRestOfRow(int N, String[] arr) {
-        if (N < 1 || N > numRows || arr == null)
+        if (N < 1 || N > numRows || arr == null) {
             return null;
+        }
 
         String[] entireRow = getRow(N);
         int amountRemoved = 0;
@@ -297,8 +342,8 @@ public class Table {
     /** Prints the column names in the Table. */
     public void printColumnNames() {
         int count = 1;
-        for (String name : columnNames) {
-            System.out.print(name);
+        for (String columnName : columnNames) {
+            System.out.print(columnName);
             /* Don't end the line with a comma. */
             if (count != numColumns) {
                 System.out.print(",");
@@ -310,13 +355,9 @@ public class Table {
 
     /** Prints the rows in the Table. */
     public void printRows() {
-        for (Map.Entry<Integer, LinkedHashMap<String, String>>
-                outerEntry : table.entrySet())
-        {
+        for (Map.Entry<Integer, LinkedHashMap<String, String>> outerEntry : table.entrySet()) {
             int count = 1;
-            for (Map.Entry<String, String> innerEntry :
-                    outerEntry.getValue().entrySet())
-            {
+            for (Map.Entry<String, String> innerEntry : outerEntry.getValue().entrySet()) {
                 System.out.print(innerEntry.getValue());
                 /* Don't end the line with a comma. */
                 if (count != numColumns) {
@@ -368,18 +409,35 @@ public class Table {
         return list;
     }
 
+    /** Gets the Cartesian Product of two tables. */
+    private static Table getProduct(Table a, Table b, String[] columnNames, int len) {
+        Table ret = new Table(columnNames);
+        int nRow_a = a.getNumRows();
+        int nCol_a = a.getNumColumns();
+        int nRow_b = b.getNumRows();
+        int nCol_b = b.getNumColumns();
+        for (int i = 1; i <= nRow_a; i++) {
+            for (int j = 1; j <= nRow_b; j++) {
+                String[] rowElements = new String[len];
+                    /* Insert all elements from A's row. */
+                System.arraycopy(a.getRow(i), 0, rowElements, 0, nCol_a);
+                    /* Insert all elements from B's row. */
+                System.arraycopy(b.getRow(j), 0, rowElements, nCol_a, nCol_b);
+                ret.addRow(rowElements);
+            }
+        }
+        return ret;
+    }
+
     /** Combines two tables and returns the result. */
     public static Table join(Table a, Table b) {
         if (a == null || b == null) {
             return null;
         }
-
         /* Find columns shared by both tables. */
         ArrayList<String> sharedColumns = sharedColumns(a, b);
-
         /* Find columns unique to Table a (the "left" table). */
         ArrayList<String> leftUniqueColumns = uniqueColumns(a, b);
-
         /* Find columns unique to Table b (the "right" table). */
         ArrayList<String> rightUniqueColumns = uniqueColumns(b, a);
 
@@ -392,27 +450,16 @@ public class Table {
         temp.addAll(sharedColumns);
         temp.addAll(leftUniqueColumns);
         temp.addAll(rightUniqueColumns);
-        int len = sharedColumns.size() + leftUniqueColumns.size() +
-                  rightUniqueColumns.size();
+        int len = sharedColumns.size() + leftUniqueColumns.size()
+                  + rightUniqueColumns.size();
         String[] columnNames = temp.toArray(new String[0]); // from StckOvflw
         Table ret = new Table(columnNames);
 
         /* If there are no shared columns, return the Cartesian Product of the
            two tables. */
         if (sharedColumns.size() == 0) {
-            for (int i = 1; i <= nRow_a; i++) {
-                for (int j = 1; j <= nRow_b; j++) {
-                    String[] rowElements = new String[len];
-                    /* Insert all elements from A's row. */
-                    System.arraycopy(a.getRow(i), 0, rowElements, 0, nCol_a);
-                    /* Insert all elements from B's row. */
-                    System.arraycopy(b.getRow(j), 0, rowElements, nCol_a, nCol_b);
-                    ret.addRow(rowElements);
-                }
-            }
-            return ret;
+            return getProduct(a, b, columnNames, len);
         }
-
 
         /* If there are shared columns, return merged rows i.f.f. values
            in every shared column match. */
@@ -428,7 +475,6 @@ public class Table {
                 arr_a[index_a] = a.getVal(i, name);
                 index_a++;
             }
-
             /* Do the same for each row in the right table while comparing the
                arrays. If the left table array matches the right table array,
                then merge the rest of those rows together. */
@@ -445,11 +491,9 @@ public class Table {
                     String[] sharedColumnNames = sharedColumns.toArray(new String[0]);
                     String[] ror_a = a.getRestOfRow(i, sharedColumnNames);
                     String[] ror_b = b.getRestOfRow(j, sharedColumnNames);
-
                     /* Add in the shared column values. */
                     System.arraycopy(arr_a, 0, rowToAdd, 0, arr_a.length);
                     index_r += arr_a.length;
-
                     /* Add in the left table row's values. */
                     for (String val : ror_a) {
                         rowToAdd[index_r] = val;
@@ -483,8 +527,8 @@ public class Table {
 
         /* Column names. */
         int count = 1;
-        for (String name : columnNames) {
-            ret += name;
+        for (String columnName : columnNames) {
+            ret += columnName;
             /* Don't end the line with a comma. */
             if (count != numColumns) {
                 ret += ",";
@@ -494,13 +538,9 @@ public class Table {
         ret += "\n";
 
         /* Rows. */
-        for (Map.Entry<Integer, LinkedHashMap<String, String>>
-                outerEntry : table.entrySet())
-        {
+        for (Map.Entry<Integer, LinkedHashMap<String, String>> outerEntry : table.entrySet()) {
             count = 1;
-            for (Map.Entry<String, String> innerEntry :
-                    outerEntry.getValue().entrySet())
-            {
+            for (Map.Entry<String, String> innerEntry : outerEntry.getValue().entrySet()) {
                 ret += innerEntry.getValue();
                 /* Don't end the line with a comma. */
                 if (count != numColumns) {
@@ -519,12 +559,12 @@ public class Table {
      * @return  true    if column names are formatted correctly
      *          false   if not
      */
-    public boolean setColumnTypes(String[] columnNames) {
-        columnTypes = new String[columnNames.length];
+    public boolean setColumnTypes(String[] names) {
+        columnTypes = new String[names.length];
 
         /* For every column name... */
-        for (int i = 0; i < columnNames.length; i++) {
-            String name = columnNames[i];
+        for (int i = 0; i < names.length; i++) {
+            String name = names[i];
             String substring;
 
             /* Get the string after the space character, aka the type. */
@@ -576,7 +616,12 @@ public class Table {
         for (int i = 0; i < columnNames.length; i++) {
             String name = columnNames[i];
             /* Get the substring before the space character. */
-            String substring = name.substring(0, name.indexOf(" "));
+            String substring;
+            if (name.contains(" ")) {
+                substring = name.substring(0, name.indexOf(" "));
+            } else {
+                return false;
+            }
 
             /* Verify that the substring's length is at least 1. */
             if (substring.length() < 1) {

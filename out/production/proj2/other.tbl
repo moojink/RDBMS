@@ -1,0 +1,2 @@
+x int,y float,z string
+52, .009, 'cs61b'
